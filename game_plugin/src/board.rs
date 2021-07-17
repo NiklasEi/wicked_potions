@@ -1,5 +1,5 @@
 use crate::loading::TextureAssets;
-use crate::matcher::{Animal, Pattern, Slot, SlotContent};
+use crate::matcher::{Collectable, Pattern, Slot, SlotContent};
 use crate::GameState;
 use bevy::prelude::*;
 use rand::random;
@@ -38,7 +38,7 @@ fn prepare_board(
     for row_index in 0..board.height {
         let mut row = vec![];
         for column_index in 0..board.width {
-            let animal: Animal = random();
+            let animal: Collectable = random();
             let entity = commands
                 .spawn_bundle(SpriteBundle {
                     material: materials.add(animal.get_texture(&textures).into()),
@@ -50,7 +50,10 @@ fn prepare_board(
                     ..SpriteBundle::default()
                 })
                 .id();
-            row.push(SlotContent { entity, animal })
+            row.push(SlotContent {
+                entity,
+                collectable: animal,
+            })
         }
         board.slots.push(row);
     }
@@ -79,15 +82,15 @@ impl Board {
         for (row_index, row) in self.slots.iter().enumerate() {
             for (column, content) in row.iter().enumerate() {
                 if let Some(animal) = current.take() {
-                    if animal == content.animal {
+                    if animal == content.collectable {
                         current = Some(animal);
                         count += 1;
                     } else {
-                        current = Some(content.animal.clone());
+                        current = Some(content.collectable.clone());
                         count = 1;
                     }
                 } else {
-                    current = Some(content.animal.clone());
+                    current = Some(content.collectable.clone());
                     count = 1;
                 }
                 if count >= 3 {
@@ -124,15 +127,15 @@ impl Board {
             for row_index in 0..self.slots.len() {
                 let content = self.slots.get(row_index).unwrap().get(column).unwrap();
                 if let Some(animal) = current.take() {
-                    if animal == content.animal {
+                    if animal == content.collectable {
                         current = Some(animal);
                         count += 1;
                     } else {
-                        current = Some(content.animal.clone());
+                        current = Some(content.collectable.clone());
                         count = 1;
                     }
                 } else {
-                    current = Some(content.animal.clone());
+                    current = Some(content.collectable.clone());
                     count = 1;
                 }
                 if count >= 3 {
@@ -232,7 +235,7 @@ impl Board {
 
 #[cfg(test)]
 mod tests {
-    use crate::matcher::{Animal, Board, Pattern, Slot, SlotContent};
+    use crate::matcher::{Board, Collectable, Pattern, Slot, SlotContent};
     use bevy::prelude::*;
 
     #[test]
@@ -244,14 +247,14 @@ mod tests {
                 vec![
                     SlotContent {
                         entity: Entity::new(0),
-                        animal: Animal::BirdOne
+                        collectable: Collectable::BirdOne
                     };
                     3
                 ];
                 3
             ],
         };
-        board.slots.get_mut(1).unwrap().get_mut(1).unwrap().animal = Animal::Red;
+        board.slots.get_mut(1).unwrap().get_mut(1).unwrap().animal = Collectable::Red;
 
         assert_eq!(
             board.find_patterns_in_rows(),
@@ -276,7 +279,7 @@ mod tests {
                 vec![
                     SlotContent {
                         entity: Entity::new(0),
-                        animal: Animal::BirdOne
+                        collectable: Collectable::BirdOne
                     };
                     size
                 ];
@@ -290,7 +293,7 @@ mod tests {
                 .unwrap()
                 .get_mut(index)
                 .unwrap()
-                .animal = Animal::Red;
+                .animal = Collectable::Red;
         }
 
         assert_eq!(
@@ -327,7 +330,7 @@ mod tests {
                 vec![
                     SlotContent {
                         entity: Entity::new(0),
-                        animal: Animal::BirdOne
+                        collectable: Collectable::BirdOne
                     };
                     5
                 ];

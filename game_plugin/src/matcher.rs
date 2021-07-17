@@ -13,7 +13,7 @@ pub enum Pattern {
 #[derive(Clone, Debug)]
 pub struct SlotContent {
     pub entity: Entity,
-    pub animal: Animal,
+    pub collectable: Collectable,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -38,28 +38,28 @@ impl Slot {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Animal {
+pub enum Collectable {
     Eye,
     Red,
     Green,
 }
 
-impl Distribution<Animal> for Standard {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Animal {
+impl Distribution<Collectable> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Collectable {
         match rng.gen_range(0..3) {
-            0 => Animal::Eye,
-            1 => Animal::Red,
-            _ => Animal::Green,
+            0 => Collectable::Eye,
+            1 => Collectable::Red,
+            _ => Collectable::Green,
         }
     }
 }
 
-impl Animal {
+impl Collectable {
     pub fn get_texture(&self, assets: &TextureAssets) -> Handle<Texture> {
         match self {
-            &Animal::Eye => assets.eye.clone(),
-            &Animal::Red => assets.red.clone(),
-            &Animal::Green => assets.green.clone(),
+            &Collectable::Eye => assets.eye.clone(),
+            &Collectable::Red => assets.red.clone(),
+            &Collectable::Green => assets.green.clone(),
         }
     }
 }
