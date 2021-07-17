@@ -1,8 +1,11 @@
 mod audio;
+mod board;
 mod loading;
+mod matcher;
 mod menu;
 
 use crate::audio::InternalAudioPlugin;
+use crate::board::BoardPlugin;
 use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
 
@@ -25,7 +28,8 @@ impl Plugin for GamePlugin {
         app.add_state(GameState::Loading)
             .add_plugin(LoadingPlugin)
             .add_plugin(MenuPlugin)
-            .add_plugin(InternalAudioPlugin);
+            .add_plugin(InternalAudioPlugin)
+            .add_plugin(BoardPlugin);
 
         #[cfg(debug_assertions)]
         {
