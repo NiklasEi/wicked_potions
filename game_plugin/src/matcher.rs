@@ -1,5 +1,8 @@
 use crate::loading::TextureAssets;
 use bevy::prelude::*;
+use rand::distributions::Standard;
+use rand::prelude::Distribution;
+use rand::Rng;
 use std::convert::TryFrom;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -37,14 +40,26 @@ impl Slot {
 #[derive(Clone, Debug, PartialEq)]
 pub enum Animal {
     Eye,
-    BirdTwo,
+    Red,
+    Green,
+}
+
+impl Distribution<Animal> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Animal {
+        match rng.gen_range(0..3) {
+            0 => Animal::Eye,
+            1 => Animal::Red,
+            _ => Animal::Green,
+        }
+    }
 }
 
 impl Animal {
     pub fn get_texture(&self, assets: &TextureAssets) -> Handle<Texture> {
         match self {
             &Animal::Eye => assets.eye.clone(),
-            _ => assets.eye.clone(),
+            &Animal::Red => assets.red.clone(),
+            &Animal::Green => assets.green.clone(),
         }
     }
 }

@@ -2,6 +2,7 @@ use crate::loading::TextureAssets;
 use crate::matcher::{Animal, Pattern, Slot, SlotContent};
 use crate::GameState;
 use bevy::prelude::*;
+use rand::random;
 use std::hint::spin_loop;
 
 pub struct BoardPlugin;
@@ -37,7 +38,7 @@ fn prepare_board(
     for row_index in 0..board.height {
         let mut row = vec![];
         for column_index in 0..board.width {
-            let animal = Animal::Eye;
+            let animal: Animal = random();
             let entity = commands
                 .spawn_bundle(SpriteBundle {
                     material: materials.add(animal.get_texture(&textures).into()),
@@ -120,8 +121,8 @@ impl Board {
         let mut count = 0;
         let mut current = None;
         for column in 0..self.slots.first().unwrap().len() {
-        for row_index in 0..self.slots.len() {
-            let content = self.slots.get(row_index).unwrap().get(column).unwrap();
+            for row_index in 0..self.slots.len() {
+                let content = self.slots.get(row_index).unwrap().get(column).unwrap();
                 if let Some(animal) = current.take() {
                     if animal == content.animal {
                         current = Some(animal);
@@ -250,7 +251,7 @@ mod tests {
                 3
             ],
         };
-        board.slots.get_mut(1).unwrap().get_mut(1).unwrap().animal = Animal::BirdTwo;
+        board.slots.get_mut(1).unwrap().get_mut(1).unwrap().animal = Animal::Red;
 
         assert_eq!(
             board.find_patterns_in_rows(),
@@ -289,7 +290,7 @@ mod tests {
                 .unwrap()
                 .get_mut(index)
                 .unwrap()
-                .animal = Animal::BirdTwo;
+                .animal = Animal::Red;
         }
 
         assert_eq!(
