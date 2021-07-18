@@ -10,11 +10,15 @@ pub struct BoardPlugin;
 
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.insert_resource(Cauldron::new()).add_system_set(
-            SystemSet::on_enter(GameState::Playing)
-                .with_system(set_camera.system())
-                .with_system(prepare_board.system()),
-        );
+        app.insert_resource(Cauldron::new())
+            .add_system_set(
+                SystemSet::on_enter(GameState::Playing)
+                    .with_system(set_camera.system())
+                    .with_system(prepare_board.system()),
+            )
+            .add_system_set(
+                SystemSet::on_update(GameState::Playing).with_system(take_patterns.system()),
+            );
     }
 }
 
@@ -75,6 +79,7 @@ fn prepare_board(
     let mut board = Board {
         height: 9,
         width: 8,
+        animating: true,
         slots: vec![],
     };
 
@@ -97,7 +102,7 @@ fn prepare_board(
                     )),
                     ..SpriteBundle::default()
                 })
-                .insert(Animate { goal, speed: 256. })
+                .insert(vec![Animate { goal, speed: 256. }])
                 .id();
             row.push(SlotContent {
                 entity,
@@ -106,12 +111,56 @@ fn prepare_board(
         }
         board.slots.push(row);
     }
+    commands.insert_resource(board);
+}
+
+fn take_patterns(mut commands: Commands, mut board: ResMut<Board>) {
+    if board.animating {
+        return;
+    }
+    let mut patterns = board.find_patterns();
+    if patterns.is_empty() {
+        return;
+    }
+
+    let mut pattern_slots = patterns
+        .drain(..)
+        .flat_map(|pattern| match pattern {
+            Pattern::Line { slots } => slots,
+        })
+        .collect::<Vec<Slot>>();
+    pattern_slots.sort();
+    pattern_slots.dedup();
+
+    let entities: Vec<Entity> = pattern_slots
+        .iter()
+        .map(|slot| {
+            board
+                .slots
+                .get(slot.row)
+                .unwrap()
+                .get(slot.column)
+                .unwrap()
+                .entity
+                .clone()
+        })
+        .collect();
+
+    for entity in entities {
+        commands.entity(entity).insert(vec![Animate {
+            goal: Vec2::new(700., 300.),
+            speed: 256.,
+        }]);
+    }
+
+    // Todo remove matched ones from board and refill it.
 }
 
 #[derive(Clone, Debug)]
 pub struct Board {
     height: usize,
     width: usize,
+    pub animating: bool,
     slots: Vec<Vec<SlotContent>>,
 }
 

@@ -16,7 +16,7 @@ pub struct SlotContent {
     pub collectable: Collectable,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
 pub struct Slot {
     pub row: usize,
     pub column: usize,
@@ -42,14 +42,16 @@ pub enum Collectable {
     Eye,
     Red,
     Green,
+    Blue,
 }
 
 impl Distribution<Collectable> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Collectable {
-        match rng.gen_range(0..3) {
+        match rng.gen_range(0..4) {
             0 => Collectable::Eye,
             1 => Collectable::Red,
-            _ => Collectable::Green,
+            2 => Collectable::Green,
+            _ => Collectable::Blue,
         }
     }
 }
@@ -60,6 +62,7 @@ impl Collectable {
             &Collectable::Eye => assets.eye.clone(),
             &Collectable::Red => assets.red.clone(),
             &Collectable::Green => assets.green.clone(),
+            &Collectable::Blue => assets.green.clone(),
         }
     }
 }

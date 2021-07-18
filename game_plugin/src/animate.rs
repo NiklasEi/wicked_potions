@@ -1,3 +1,4 @@
+use crate::board::Board;
 use crate::GameState;
 use bevy::prelude::*;
 
@@ -22,21 +23,30 @@ pub struct Animate {
 
 fn animate(
     mut commands: Commands,
-    mut animations: Query<(Entity, &mut Transform, &Animate)>,
+    mut board: ResMut<Board>,
+    mut animations: Query<(Entity, &mut Transform, &mut Vec<Animate>)>,
     time: Res<Time>,
 ) {
+    let mut count = 0;
     let delta = time.delta().as_secs_f32();
-    for (entity, mut transform, animate) in animations.iter_mut() {
+    for (entity, mut transform, mut animations) in animations.iter_mut() {
+        count += 1;
+        let animate = animations.first().unwrap();
         let diff = animate.goal - Vec2::new(transform.translation.x, transform.translation.y);
         let movement = delta * animate.speed;
         if diff.length() < (delta * animate.speed) {
             transform.translation.x = animate.goal.x;
             transform.translation.y = animate.goal.y;
-            commands.entity(entity).remove::<Animate>();
+            if animations.len() == 1 {
+                commands.entity(entity).remove::<Vec<Animate>>();
+            } else {
+                animations.remove(0);
+            }
         } else {
             let movement = diff.normalize() * movement;
             transform.translation.x += movement.x;
             transform.translation.y += movement.y;
         }
     }
+    board.animating = count > 0;
 }
