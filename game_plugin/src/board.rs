@@ -9,12 +9,57 @@ pub struct BoardPlugin;
 
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_system_set(
+        app.insert_resource(Cauldron::new())
+            .add_system_set(
             SystemSet::on_enter(GameState::Playing)
                 .with_system(set_camera.system())
                 .with_system(prepare_board.system()),
         );
     }
+}
+
+pub struct Cauldron {
+    recipe: Recipe
+}
+
+impl Cauldron {
+    pub fn new() -> Self {
+        Cauldron {
+            recipe: Recipe::build_random()
+        }
+    }
+
+    pub fn new_recipe(&mut self) {
+        self.recipe = Recipe::build_random();
+    }
+}
+
+pub struct Recipe {
+    ingredients: Vec<Ingredients>
+}
+
+impl Recipe {
+    // ToDo: make random
+    pub fn build_random() -> Self {
+        let mut ingredients = vec![
+            Ingredients {
+                amount: 7,
+                collectable: Collectable::Eye
+            },
+            Ingredients {
+                amount: 4,
+                collectable: Collectable::Green
+            }
+        ];
+        Recipe {
+            ingredients
+        }
+    }
+}
+
+pub struct Ingredients {
+    amount: usize,
+    collectable: Collectable
 }
 
 fn set_camera(mut commands: Commands) {
