@@ -1,3 +1,4 @@
+use crate::animate::Animate;
 use crate::loading::TextureAssets;
 use crate::matcher::{Collectable, Pattern, Slot, SlotContent};
 use crate::GameState;
@@ -9,8 +10,7 @@ pub struct BoardPlugin;
 
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.insert_resource(Cauldron::new())
-            .add_system_set(
+        app.insert_resource(Cauldron::new()).add_system_set(
             SystemSet::on_enter(GameState::Playing)
                 .with_system(set_camera.system())
                 .with_system(prepare_board.system()),
@@ -19,13 +19,13 @@ impl Plugin for BoardPlugin {
 }
 
 pub struct Cauldron {
-    recipe: Recipe
+    recipe: Recipe,
 }
 
 impl Cauldron {
     pub fn new() -> Self {
         Cauldron {
-            recipe: Recipe::build_random()
+            recipe: Recipe::build_random(),
         }
     }
 
@@ -35,7 +35,7 @@ impl Cauldron {
 }
 
 pub struct Recipe {
-    ingredients: Vec<Ingredients>
+    ingredients: Vec<Ingredients>,
 }
 
 impl Recipe {
@@ -44,22 +44,20 @@ impl Recipe {
         let mut ingredients = vec![
             Ingredients {
                 amount: 7,
-                collectable: Collectable::Eye
+                collectable: Collectable::Eye,
             },
             Ingredients {
                 amount: 4,
-                collectable: Collectable::Green
-            }
+                collectable: Collectable::Green,
+            },
         ];
-        Recipe {
-            ingredients
-        }
+        Recipe { ingredients }
     }
 }
 
 pub struct Ingredients {
     amount: usize,
-    collectable: Collectable
+    collectable: Collectable,
 }
 
 fn set_camera(mut commands: Commands) {
@@ -80,20 +78,26 @@ fn prepare_board(
         slots: vec![],
     };
 
+    let animation_offset = board.height as f32 * 64.;
     for row_index in 0..board.height {
         let mut row = vec![];
         for column_index in 0..board.width {
             let animal: Collectable = random();
+            let goal = Vec2::new(
+                column_index as f32 * 64. + 32.,
+                row_index as f32 * 64. + 32.,
+            );
             let entity = commands
                 .spawn_bundle(SpriteBundle {
                     material: materials.add(animal.get_texture(&textures).into()),
                     transform: Transform::from_translation(Vec3::new(
-                        column_index as f32 * 64. + 32.,
-                        row_index as f32 * 64. + 32.,
+                        goal.x,
+                        goal.y + animation_offset,
                         0.,
                     )),
                     ..SpriteBundle::default()
                 })
+                .insert(Animate { goal, speed: 256. })
                 .id();
             row.push(SlotContent {
                 entity,
