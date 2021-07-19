@@ -1,4 +1,4 @@
-use crate::animate::Animate;
+use crate::animate::{Animate, Move};
 use crate::loading::{RawTextureAssets, TextureAssets};
 use crate::matcher::{Collectable, Pattern, Slot, SlotContent};
 use crate::{GameState, SystemLabels};
@@ -86,11 +86,7 @@ fn set_camera(mut commands: Commands) {
     });
 }
 
-fn prepare_board(
-    mut commands: Commands,
-    textures: Res<TextureAssets>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) {
+fn prepare_board(mut commands: Commands, textures: Res<TextureAssets>) {
     let mut board = Board {
         height: 9,
         width: 8,
@@ -119,12 +115,7 @@ fn prepare_board(
     commands.insert_resource(board);
 }
 
-fn take_patterns(
-    mut board: ResMut<Board>,
-    mut commands: Commands,
-    textures: Res<TextureAssets>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) {
+fn take_patterns(mut board: ResMut<Board>, mut commands: Commands, textures: Res<TextureAssets>) {
     if board.animating {
         return;
     }
@@ -142,25 +133,21 @@ fn take_patterns(
     pattern_slots.sort();
     pattern_slots.dedup();
 
-    let entities: Vec<Entity> = pattern_slots
+    let entities: Vec<SlotContent> = pattern_slots
         .iter()
-        .map(|slot| {
-            board
-                .slots
-                .get(slot.column)
-                .unwrap()
-                .get(slot.row)
-                .unwrap()
-                .entity
-                .clone()
-        })
+        .map(|slot| board.get_content(slot))
         .collect();
 
-    for entity in entities {
+    for SlotContent {
+        entity,
+        collectable,
+    } in entities
+    {
         commands
             .entity(entity)
             .remove::<Slot>()
-            .insert(vec![Animate {
+            .insert(collectable.get_animation())
+            .insert(vec![Move {
                 goal: Vec2::new(700., 300.),
                 speed: 256.,
             }]);
@@ -171,7 +158,7 @@ fn take_patterns(
         let content = board.get_content(&slot);
         commands
             .entity(content.entity)
-            .insert(vec![Animate {
+            .insert(vec![Move {
                 goal: Vec2::new(slot.column as f32 * 64. + 32., slot.row as f32 * 64. + 32.),
                 speed: 256.,
             }])
@@ -196,9 +183,18 @@ fn user_selection(
             if slot.row >= board.height || slot.column >= board.width {
                 return;
             }
+            let tile_two = board.get_content(&slot);
             if let Some(one) = selection.deref() {
                 let neighbors = board.neighbors(one);
+                let tile_one = board.get_content(one);
                 if !neighbors.contains(&slot) {
+                    commands
+                        .entity(tile_one.entity)
+                        .remove::<Animate>()
+                        .insert(TextureAtlasSprite::default());
+                    commands
+                        .entity(tile_two.entity)
+                        .insert(tile_two.collectable.get_animation());
                     *selection = Some(slot);
                     return;
                 }
@@ -206,29 +202,34 @@ fn user_selection(
                     // ToDo: "No" sound + small animation?
                     return;
                 }
-                let tile_one = board.get_content(one);
-                let tile_two = board.get_content(&slot);
                 if let Ok(transform_one) = tiles.get(tile_one.entity) {
                     if let Ok(transform_two) = tiles.get(tile_two.entity) {
-                        commands.entity(tile_one.entity).insert(Animate {
+                        commands.entity(tile_one.entity).insert(vec![Move {
                             goal: Vec2::new(
                                 transform_two.translation.x,
                                 transform_two.translation.y,
                             ),
                             speed: 256.,
-                        });
-                        commands.entity(tile_two.entity).insert(Animate {
+                        }]);
+                        commands.entity(tile_two.entity).insert(vec![Move {
                             goal: Vec2::new(
                                 transform_one.translation.x,
                                 transform_one.translation.y,
                             ),
                             speed: 256.,
-                        });
+                        }]);
                     }
                 }
                 board.switch(one, &slot, &mut commands);
+                commands
+                    .entity(tile_one.entity)
+                    .remove::<Animate>()
+                    .insert(TextureAtlasSprite::default());
                 *selection = None;
             } else {
+                commands
+                    .entity(tile_two.entity)
+                    .insert(tile_two.collectable.get_animation());
                 *selection = Some(slot);
             }
         }
@@ -319,11 +320,11 @@ impl Board {
 
         commands
             .entity(tile_one.entity)
-            .insert(vec![Animate::move_to_slot(two)])
+            .insert(vec![Move::move_to_slot(two)])
             .insert(two.clone());
         commands
             .entity(tile_two.entity)
-            .insert(vec![Animate::move_to_slot(one)])
+            .insert(vec![Move::move_to_slot(one)])
             .insert(one.clone());
 
         self.switch_in_slots(one, tile_one, two, tile_two);
@@ -534,7 +535,7 @@ fn drop_random_collectable(
             transform: Transform::from_translation(Vec3::new(goal.x, goal.y + drop_height, 0.)),
             ..SpriteSheetBundle::default()
         })
-        .insert(vec![Animate { goal, speed: 256. }])
+        .insert(vec![Move { goal, speed: 256. }])
         .insert(slot)
         .id();
     SlotContent {

@@ -1,3 +1,4 @@
+use crate::animate::Animate;
 use crate::loading::{RawTextureAssets, TextureAssets};
 use bevy::prelude::*;
 use rand::distributions::Standard;
@@ -63,6 +64,27 @@ impl Collectable {
             &Collectable::Red => assets.red.clone(),
             &Collectable::Green => assets.green.clone(),
             &Collectable::Tongue => assets.tongue.clone(),
+        }
+    }
+
+    pub fn get_animation(&self) -> Animate {
+        match self {
+            &Collectable::Eye => Animate {
+                frames: 6,
+                loop_animation: false,
+            },
+            &Collectable::Red => Animate {
+                frames: 6,
+                loop_animation: true,
+            },
+            &Collectable::Green => Animate {
+                frames: 6,
+                loop_animation: true,
+            },
+            &Collectable::Tongue => Animate {
+                frames: 6,
+                loop_animation: true,
+            },
         }
     }
 }
