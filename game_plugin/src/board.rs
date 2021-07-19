@@ -1,5 +1,5 @@
 use crate::animate::Animate;
-use crate::loading::TextureAssets;
+use crate::loading::{RawTextureAssets, TextureAssets};
 use crate::matcher::{Collectable, Pattern, Slot, SlotContent};
 use crate::{GameState, SystemLabels};
 use bevy::prelude::*;
@@ -110,14 +110,8 @@ fn prepare_board(
                 row: row_index,
                 column: column_index,
             };
-            let slot_content = drop_random_collectable(
-                &mut commands,
-                goal,
-                animation_offset,
-                slot,
-                &textures,
-                &mut materials,
-            );
+            let slot_content =
+                drop_random_collectable(&mut commands, goal, animation_offset, slot, &textures);
             column.push(slot_content);
         }
         board.slots.push(column);
@@ -172,8 +166,7 @@ fn take_patterns(
             }]);
     }
 
-    let slots_to_animate =
-        board.remove_slots(pattern_slots, &mut commands, &textures, &mut materials);
+    let slots_to_animate = board.remove_slots(pattern_slots, &mut commands, &textures);
     for slot in slots_to_animate {
         let content = board.get_content(&slot);
         commands
@@ -264,7 +257,6 @@ impl Board {
         mut slots: Vec<Slot>,
         commands: &mut Commands,
         textures: &TextureAssets,
-        materials: &mut Assets<ColorMaterial>,
     ) -> Vec<Slot> {
         slots.sort();
         slots.reverse();
@@ -278,7 +270,7 @@ impl Board {
                 for row in row..self.slots.get(column).unwrap().len() {
                     slots_to_animate.push(Slot { row, column })
                 }
-                self.fill_column(column, commands, textures, materials);
+                self.fill_column(column, commands, textures);
                 row = slot.row;
                 column = slot.column;
             } else {
@@ -289,18 +281,12 @@ impl Board {
         for row in row..self.slots.get(column).unwrap().len() {
             slots_to_animate.push(Slot { row, column })
         }
-        self.fill_column(column, commands, textures, materials);
+        self.fill_column(column, commands, textures);
 
         slots_to_animate
     }
 
-    fn fill_column(
-        &mut self,
-        column: usize,
-        commands: &mut Commands,
-        textures: &TextureAssets,
-        materials: &mut Assets<ColorMaterial>,
-    ) {
+    fn fill_column(&mut self, column: usize, commands: &mut Commands, textures: &TextureAssets) {
         let full_rows = self.slots.get(column).unwrap().len();
         let slots_to_drop = self.height - full_rows;
         let mut new_content = vec![];
@@ -312,7 +298,6 @@ impl Board {
                 slots_to_drop as f32 * 64.,
                 Slot { row, column },
                 textures,
-                materials,
             );
             new_content.push(slot_content);
         }
@@ -541,14 +526,13 @@ fn drop_random_collectable(
     drop_height: f32,
     slot: Slot,
     textures: &TextureAssets,
-    materials: &mut Assets<ColorMaterial>,
 ) -> SlotContent {
     let animal: Collectable = random();
     let entity = commands
-        .spawn_bundle(SpriteBundle {
-            material: materials.add(animal.get_texture(textures).into()),
+        .spawn_bundle(SpriteSheetBundle {
+            texture_atlas: animal.get_texture(textures),
             transform: Transform::from_translation(Vec3::new(goal.x, goal.y + drop_height, 0.)),
-            ..SpriteBundle::default()
+            ..SpriteSheetBundle::default()
         })
         .insert(vec![Animate { goal, speed: 256. }])
         .insert(slot)

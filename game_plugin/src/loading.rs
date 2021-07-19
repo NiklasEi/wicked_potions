@@ -13,7 +13,8 @@ impl Plugin for LoadingPlugin {
         AssetLoader::new(GameState::Loading, GameState::Menu)
             .with_collection::<FontAssets>()
             .with_collection::<AudioAssets>()
-            .with_collection::<TextureAssets>()
+            .with_collection::<RawTextureAssets>()
+            .init_resource::<TextureAssets>()
             .build(app);
     }
 }
@@ -33,12 +34,54 @@ pub struct AudioAssets {
     pub flying: Handle<AudioSource>,
 }
 
-#[derive(AssetCollection)]
-pub struct TextureAssets {
-    #[asset(path = "textures/eye.png")]
-    pub eye: Handle<Texture>,
+#[derive(AssetCollection, Clone)]
+pub struct RawTextureAssets {
+    #[asset(path = "textures/eye_sheet.png")]
+    pub eye_sheet: Handle<Texture>,
+    #[asset(path = "textures/tongue_sheet.png")]
+    pub tongue_sheet: Handle<Texture>,
     #[asset(path = "textures/green.png")]
     pub green: Handle<Texture>,
     #[asset(path = "textures/red.png")]
     pub red: Handle<Texture>,
+}
+
+pub struct TextureAssets {
+    pub eye: Handle<TextureAtlas>,
+    pub tongue: Handle<TextureAtlas>,
+    pub green: Handle<TextureAtlas>,
+    pub red: Handle<TextureAtlas>,
+}
+
+impl FromWorld for TextureAssets {
+    fn from_world(world: &mut World) -> Self {
+        let raw_textures = world.get_resource::<RawTextureAssets>().unwrap().clone();
+        let mut texture_atlases = world.get_resource_mut::<Assets<TextureAtlas>>().unwrap();
+        TextureAssets {
+            eye: texture_atlases.add(TextureAtlas::from_grid(
+                raw_textures.eye_sheet.clone(),
+                Vec2::new(64., 64.),
+                6,
+                1,
+            )),
+            tongue: texture_atlases.add(TextureAtlas::from_grid(
+                raw_textures.tongue_sheet.clone(),
+                Vec2::new(64., 64.),
+                6,
+                1,
+            )),
+            green: texture_atlases.add(TextureAtlas::from_grid(
+                raw_textures.green.clone(),
+                Vec2::new(64., 64.),
+                6,
+                1,
+            )),
+            red: texture_atlases.add(TextureAtlas::from_grid(
+                raw_textures.red.clone(),
+                Vec2::new(64., 64.),
+                6,
+                1,
+            )),
+        }
+    }
 }

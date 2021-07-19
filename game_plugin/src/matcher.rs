@@ -1,4 +1,4 @@
-use crate::loading::TextureAssets;
+use crate::loading::{RawTextureAssets, TextureAssets};
 use bevy::prelude::*;
 use rand::distributions::Standard;
 use rand::prelude::Distribution;
@@ -40,29 +40,29 @@ impl Slot {
 #[derive(Clone, Debug, PartialEq)]
 pub enum Collectable {
     Eye,
+    Tongue,
     Red,
     Green,
-    Blue,
 }
 
 impl Distribution<Collectable> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Collectable {
         match rng.gen_range(0..4) {
             0 => Collectable::Eye,
-            1 => Collectable::Red,
+            1 => Collectable::Tongue,
             2 => Collectable::Green,
-            _ => Collectable::Blue,
+            _ => Collectable::Red,
         }
     }
 }
 
 impl Collectable {
-    pub fn get_texture(&self, assets: &TextureAssets) -> Handle<Texture> {
+    pub fn get_texture(&self, assets: &TextureAssets) -> Handle<TextureAtlas> {
         match self {
             &Collectable::Eye => assets.eye.clone(),
             &Collectable::Red => assets.red.clone(),
             &Collectable::Green => assets.green.clone(),
-            &Collectable::Blue => assets.green.clone(),
+            &Collectable::Tongue => assets.tongue.clone(),
         }
     }
 }
