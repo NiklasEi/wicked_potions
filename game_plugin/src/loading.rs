@@ -40,6 +40,8 @@ pub struct RawTextureAssets {
     pub eye_sheet: Handle<Texture>,
     #[asset(path = "textures/tongue_sheet.png")]
     pub tongue_sheet: Handle<Texture>,
+    #[asset(path = "textures/cauldron.png")]
+    pub cauldron: Handle<Texture>,
     #[asset(path = "textures/green.png")]
     pub green: Handle<Texture>,
     #[asset(path = "textures/red.png")]
