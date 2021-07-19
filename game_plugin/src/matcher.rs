@@ -18,8 +18,8 @@ pub struct SlotContent {
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord)]
 pub struct Slot {
-    pub row: usize,
     pub column: usize,
+    pub row: usize,
 }
 
 impl Slot {

@@ -23,6 +23,13 @@ enum GameState {
     Menu,
 }
 
+#[derive(SystemLabel, Clone, Hash, Debug, Eq, PartialEq)]
+pub enum SystemLabels {
+    Animate,
+    MatchPatterns,
+    UserInput,
+}
+
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {

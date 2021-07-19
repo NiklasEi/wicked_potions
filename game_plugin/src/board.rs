@@ -1,26 +1,41 @@
 use crate::animate::Animate;
 use crate::loading::TextureAssets;
 use crate::matcher::{Collectable, Pattern, Slot, SlotContent};
-use crate::GameState;
+use crate::{GameState, SystemLabels};
 use bevy::prelude::*;
 use rand::random;
-use std::hint::spin_loop;
+use std::ops::Deref;
 
 pub struct BoardPlugin;
 
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.insert_resource(Cauldron::new())
+            .insert_resource::<Selected>(None)
             .add_system_set(
                 SystemSet::on_enter(GameState::Playing)
                     .with_system(set_camera.system())
                     .with_system(prepare_board.system()),
             )
             .add_system_set(
-                SystemSet::on_update(GameState::Playing).with_system(take_patterns.system()),
+                SystemSet::on_update(GameState::Playing)
+                    .with_system(
+                        take_patterns
+                            .system()
+                            .label(SystemLabels::MatchPatterns)
+                            .after(SystemLabels::Animate),
+                    )
+                    .with_system(
+                        user_selection
+                            .system()
+                            .label(SystemLabels::UserInput)
+                            .after(SystemLabels::MatchPatterns),
+                    ),
             );
     }
 }
+
+pub type Selected = Option<Slot>;
 
 pub struct Cauldron {
     recipe: Recipe,
@@ -45,7 +60,7 @@ pub struct Recipe {
 impl Recipe {
     // ToDo: make random
     pub fn build_random() -> Self {
-        let mut ingredients = vec![
+        let ingredients = vec![
             Ingredients {
                 amount: 7,
                 collectable: Collectable::Eye,
@@ -84,37 +99,38 @@ fn prepare_board(
     };
 
     let animation_offset = board.height as f32 * 64.;
-    for row_index in 0..board.height {
-        let mut row = vec![];
-        for column_index in 0..board.width {
-            let animal: Collectable = random();
+    for column_index in 0..board.width {
+        let mut column = vec![];
+        for row_index in 0..board.height {
             let goal = Vec2::new(
                 column_index as f32 * 64. + 32.,
                 row_index as f32 * 64. + 32.,
             );
-            let entity = commands
-                .spawn_bundle(SpriteBundle {
-                    material: materials.add(animal.get_texture(&textures).into()),
-                    transform: Transform::from_translation(Vec3::new(
-                        goal.x,
-                        goal.y + animation_offset,
-                        0.,
-                    )),
-                    ..SpriteBundle::default()
-                })
-                .insert(vec![Animate { goal, speed: 256. }])
-                .id();
-            row.push(SlotContent {
-                entity,
-                collectable: animal,
-            })
+            let slot = Slot {
+                row: row_index,
+                column: column_index,
+            };
+            let slot_content = drop_random_collectable(
+                &mut commands,
+                goal,
+                animation_offset,
+                slot,
+                &textures,
+                &mut materials,
+            );
+            column.push(slot_content);
         }
-        board.slots.push(row);
+        board.slots.push(column);
     }
     commands.insert_resource(board);
 }
 
-fn take_patterns(mut commands: Commands, mut board: ResMut<Board>) {
+fn take_patterns(
+    mut board: ResMut<Board>,
+    mut commands: Commands,
+    textures: Res<TextureAssets>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
     if board.animating {
         return;
     }
@@ -137,9 +153,9 @@ fn take_patterns(mut commands: Commands, mut board: ResMut<Board>) {
         .map(|slot| {
             board
                 .slots
-                .get(slot.row)
-                .unwrap()
                 .get(slot.column)
+                .unwrap()
+                .get(slot.row)
                 .unwrap()
                 .entity
                 .clone()
@@ -147,13 +163,83 @@ fn take_patterns(mut commands: Commands, mut board: ResMut<Board>) {
         .collect();
 
     for entity in entities {
-        commands.entity(entity).insert(vec![Animate {
-            goal: Vec2::new(700., 300.),
-            speed: 256.,
-        }]);
+        commands
+            .entity(entity)
+            .remove::<Slot>()
+            .insert(vec![Animate {
+                goal: Vec2::new(700., 300.),
+                speed: 256.,
+            }]);
     }
 
-    // Todo remove matched ones from board and refill it.
+    let slots_to_animate =
+        board.remove_slots(pattern_slots, &mut commands, &textures, &mut materials);
+    for slot in slots_to_animate {
+        let content = board.get_content(&slot);
+        commands
+            .entity(content.entity)
+            .insert(vec![Animate {
+                goal: Vec2::new(slot.column as f32 * 64. + 32., slot.row as f32 * 64. + 32.),
+                speed: 256.,
+            }])
+            .insert(slot);
+    }
+}
+
+fn user_selection(
+    mut commands: Commands,
+    mut selection: ResMut<Selected>,
+    windows: Res<Windows>,
+    mouse_buttons: Res<Input<MouseButton>>,
+    tiles: Query<&Transform, With<Slot>>,
+    mut board: ResMut<Board>,
+) {
+    if !board.animating && mouse_buttons.just_pressed(MouseButton::Left) {
+        let window = windows.get_primary().expect("No primary window found");
+        if let Some(position) = window.cursor_position() {
+            let column = (position.x / 64.) as usize;
+            let row = (position.y / 64.) as usize;
+            let slot = Slot { row, column };
+            if slot.row >= board.height || slot.column >= board.width {
+                return;
+            }
+            if let Some(one) = selection.deref() {
+                let neighbors = board.neighbors(one);
+                if !neighbors.contains(&slot) {
+                    *selection = Some(slot);
+                    return;
+                }
+                if !board.has_pattern_after_switch(one, &slot) {
+                    // ToDo: "No" sound + small animation?
+                    return;
+                }
+                let tile_one = board.get_content(one);
+                let tile_two = board.get_content(&slot);
+                if let Ok(transform_one) = tiles.get(tile_one.entity) {
+                    if let Ok(transform_two) = tiles.get(tile_two.entity) {
+                        commands.entity(tile_one.entity).insert(Animate {
+                            goal: Vec2::new(
+                                transform_two.translation.x,
+                                transform_two.translation.y,
+                            ),
+                            speed: 256.,
+                        });
+                        commands.entity(tile_two.entity).insert(Animate {
+                            goal: Vec2::new(
+                                transform_one.translation.x,
+                                transform_one.translation.y,
+                            ),
+                            speed: 256.,
+                        });
+                    }
+                }
+                board.switch(one, &slot, &mut commands);
+                *selection = None;
+            } else {
+                *selection = Some(slot);
+            }
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -167,18 +253,136 @@ pub struct Board {
 impl Board {
     pub fn find_patterns(&self) -> Vec<Pattern> {
         let mut patterns = vec![];
-        patterns.append(&mut self.find_patterns_in_rows());
         patterns.append(&mut self.find_patterns_in_columns());
+        patterns.append(&mut self.find_patterns_in_rows());
 
         patterns
     }
 
-    fn find_patterns_in_rows(&self) -> Vec<Pattern> {
+    pub fn remove_slots(
+        &mut self,
+        mut slots: Vec<Slot>,
+        commands: &mut Commands,
+        textures: &TextureAssets,
+        materials: &mut Assets<ColorMaterial>,
+    ) -> Vec<Slot> {
+        slots.sort();
+        slots.reverse();
+
+        let mut slots_to_animate = vec![];
+
+        let mut column = slots.first().unwrap().column;
+        let mut row = slots.first().unwrap().row;
+        for slot in slots {
+            if column != slot.column {
+                for row in row..self.slots.get(column).unwrap().len() {
+                    slots_to_animate.push(Slot { row, column })
+                }
+                self.fill_column(column, commands, textures, materials);
+                row = slot.row;
+                column = slot.column;
+            } else {
+                row = slot.row;
+            }
+            self.slots.get_mut(slot.column).unwrap().remove(slot.row);
+        }
+        for row in row..self.slots.get(column).unwrap().len() {
+            slots_to_animate.push(Slot { row, column })
+        }
+        self.fill_column(column, commands, textures, materials);
+
+        slots_to_animate
+    }
+
+    fn fill_column(
+        &mut self,
+        column: usize,
+        commands: &mut Commands,
+        textures: &TextureAssets,
+        materials: &mut Assets<ColorMaterial>,
+    ) {
+        let full_rows = self.slots.get(column).unwrap().len();
+        let slots_to_drop = self.height - full_rows;
+        let mut new_content = vec![];
+        for row in full_rows..self.height {
+            let goal = Vec2::new(column as f32 * 64. + 32., row as f32 * 64. + 32.);
+            let slot_content = drop_random_collectable(
+                commands,
+                goal,
+                slots_to_drop as f32 * 64.,
+                Slot { row, column },
+                textures,
+                materials,
+            );
+            new_content.push(slot_content);
+        }
+        self.slots.get_mut(column).unwrap().append(&mut new_content);
+    }
+
+    pub fn get_content(&self, slot: &Slot) -> SlotContent {
+        self.slots
+            .get(slot.column)
+            .unwrap()
+            .get(slot.row)
+            .unwrap()
+            .clone()
+    }
+
+    pub fn switch(&mut self, one: &Slot, two: &Slot, commands: &mut Commands) {
+        let tile_one = self.get_content(one);
+        let tile_two = self.get_content(two);
+
+        commands
+            .entity(tile_one.entity)
+            .insert(vec![Animate::move_to_slot(two)])
+            .insert(two.clone());
+        commands
+            .entity(tile_two.entity)
+            .insert(vec![Animate::move_to_slot(one)])
+            .insert(one.clone());
+
+        self.switch_in_slots(one, tile_one, two, tile_two);
+    }
+
+    fn switch_in_slots(
+        &mut self,
+        one: &Slot,
+        tile_one: SlotContent,
+        two: &Slot,
+        tile_two: SlotContent,
+    ) {
+        self.slots.get_mut(one.column).unwrap().remove(one.row);
+        self.slots
+            .get_mut(one.column)
+            .unwrap()
+            .insert(one.row, tile_two);
+        self.slots.get_mut(two.column).unwrap().remove(two.row);
+        self.slots
+            .get_mut(two.column)
+            .unwrap()
+            .insert(two.row, tile_one);
+    }
+
+    pub fn has_pattern_after_switch(&mut self, one: &Slot, two: &Slot) -> bool {
+        let tile_one = self.get_content(one);
+        let tile_two = self.get_content(two);
+        self.switch_in_slots(one, tile_one, two, tile_two);
+
+        let has_patterns = !self.find_patterns().is_empty();
+
+        let tile_one = self.get_content(one);
+        let tile_two = self.get_content(two);
+        self.switch_in_slots(one, tile_one, two, tile_two);
+
+        has_patterns
+    }
+
+    fn find_patterns_in_columns(&self) -> Vec<Pattern> {
         let mut patterns = vec![];
         let mut count = 0;
         let mut current = None;
-        for (row_index, row) in self.slots.iter().enumerate() {
-            for (column, content) in row.iter().enumerate() {
+        for (column_index, column) in self.slots.iter().enumerate() {
+            for (row, content) in column.iter().enumerate() {
                 if let Some(animal) = current.take() {
                     if animal == content.collectable {
                         current = Some(animal);
@@ -195,16 +399,16 @@ impl Board {
                     patterns.push(Pattern::Line {
                         slots: vec![
                             Slot {
-                                row: row_index,
-                                column,
+                                row,
+                                column: column_index,
                             },
                             Slot {
-                                row: row_index,
-                                column: column - 1,
+                                row: row - 1,
+                                column: column_index,
                             },
                             Slot {
-                                row: row_index,
-                                column: column - 2,
+                                row: row - 2,
+                                column: column_index,
                             },
                         ],
                     })
@@ -217,13 +421,13 @@ impl Board {
         patterns
     }
 
-    fn find_patterns_in_columns(&self) -> Vec<Pattern> {
+    fn find_patterns_in_rows(&self) -> Vec<Pattern> {
         let mut patterns = vec![];
         let mut count = 0;
         let mut current = None;
-        for column in 0..self.slots.first().unwrap().len() {
-            for row_index in 0..self.slots.len() {
-                let content = self.slots.get(row_index).unwrap().get(column).unwrap();
+        for row in 0..self.slots.first().unwrap().len() {
+            for column_index in 0..self.slots.len() {
+                let content = self.slots.get(column_index).unwrap().get(row).unwrap();
                 if let Some(animal) = current.take() {
                     if animal == content.collectable {
                         current = Some(animal);
@@ -240,16 +444,16 @@ impl Board {
                     patterns.push(Pattern::Line {
                         slots: vec![
                             Slot {
-                                row: row_index,
-                                column,
+                                column: column_index,
+                                row,
                             },
                             Slot {
-                                row: row_index - 1,
-                                column,
+                                column: column_index - 1,
+                                row,
                             },
                             Slot {
-                                row: row_index - 2,
-                                column,
+                                column: column_index - 2,
+                                row,
                             },
                         ],
                     })
@@ -331,9 +535,34 @@ impl Board {
     }
 }
 
+fn drop_random_collectable(
+    commands: &mut Commands,
+    goal: Vec2,
+    drop_height: f32,
+    slot: Slot,
+    textures: &TextureAssets,
+    materials: &mut Assets<ColorMaterial>,
+) -> SlotContent {
+    let animal: Collectable = random();
+    let entity = commands
+        .spawn_bundle(SpriteBundle {
+            material: materials.add(animal.get_texture(textures).into()),
+            transform: Transform::from_translation(Vec3::new(goal.x, goal.y + drop_height, 0.)),
+            ..SpriteBundle::default()
+        })
+        .insert(vec![Animate { goal, speed: 256. }])
+        .insert(slot)
+        .id();
+    SlotContent {
+        entity,
+        collectable: animal,
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::matcher::{Board, Collectable, Pattern, Slot, SlotContent};
+    use crate::board::Board;
+    use crate::matcher::{Collectable, Pattern, Slot, SlotContent};
     use bevy::prelude::*;
 
     #[test]
@@ -341,18 +570,25 @@ mod tests {
         let mut board = Board {
             height: 3,
             width: 3,
+            animating: false,
             slots: vec![
                 vec![
                     SlotContent {
                         entity: Entity::new(0),
-                        collectable: Collectable::BirdOne
+                        collectable: Collectable::Green
                     };
                     3
                 ];
                 3
             ],
         };
-        board.slots.get_mut(1).unwrap().get_mut(1).unwrap().animal = Collectable::Red;
+        board
+            .slots
+            .get_mut(1)
+            .unwrap()
+            .get_mut(1)
+            .unwrap()
+            .collectable = Collectable::Red;
 
         assert_eq!(
             board.find_patterns_in_rows(),
@@ -373,11 +609,12 @@ mod tests {
         let mut board = Board {
             height: size,
             width: size,
+            animating: false,
             slots: vec![
                 vec![
                     SlotContent {
                         entity: Entity::new(0),
-                        collectable: Collectable::BirdOne
+                        collectable: Collectable::Green
                     };
                     size
                 ];
@@ -391,7 +628,7 @@ mod tests {
                 .unwrap()
                 .get_mut(index)
                 .unwrap()
-                .animal = Collectable::Red;
+                .collectable = Collectable::Red;
         }
 
         assert_eq!(
@@ -424,11 +661,12 @@ mod tests {
         let board = Board {
             height: 5,
             width: 5,
+            animating: false,
             slots: vec![
                 vec![
                     SlotContent {
                         entity: Entity::new(0),
-                        collectable: Collectable::BirdOne
+                        collectable: Collectable::Green
                     };
                     5
                 ];

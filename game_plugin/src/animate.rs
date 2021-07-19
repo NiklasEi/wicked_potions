@@ -1,24 +1,31 @@
 use crate::board::Board;
-use crate::GameState;
+use crate::matcher::Slot;
+use crate::{GameState, SystemLabels};
 use bevy::prelude::*;
 
 pub struct AnimatePlugin;
 
 impl Plugin for AnimatePlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.insert_resource(Animation::Running)
-            .add_system_set(SystemSet::on_update(GameState::Playing).with_system(animate.system()));
+        app.add_system_set(
+            SystemSet::on_update(GameState::Playing)
+                .with_system(animate.system().label(SystemLabels::Animate)),
+        );
     }
-}
-
-pub enum Animation {
-    None,
-    Running,
 }
 
 pub struct Animate {
     pub goal: Vec2,
     pub speed: f32,
+}
+
+impl Animate {
+    pub fn move_to_slot(slot: &Slot) -> Self {
+        Animate {
+            goal: Vec2::new(slot.column as f32 * 64. + 32., slot.row as f32 * 64. + 32.),
+            speed: 256.,
+        }
+    }
 }
 
 fn animate(
