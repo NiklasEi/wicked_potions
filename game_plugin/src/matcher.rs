@@ -42,16 +42,18 @@ impl Slot {
 pub enum Collectable {
     Eye,
     Tongue,
+    Frog,
     Red,
     Green,
 }
 
 impl Distribution<Collectable> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Collectable {
-        match rng.gen_range(0..4) {
+        match rng.gen_range(0..5) {
             0 => Collectable::Eye,
             1 => Collectable::Tongue,
-            2 => Collectable::Green,
+            2 => Collectable::Frog,
+            3 => Collectable::Green,
             _ => Collectable::Red,
         }
     }
@@ -61,9 +63,10 @@ impl Collectable {
     pub fn get_texture(&self, assets: &TextureAssets) -> Handle<TextureAtlas> {
         match self {
             &Collectable::Eye => assets.eye.clone(),
+            &Collectable::Tongue => assets.tongue.clone(),
+            &Collectable::Frog => assets.frog.clone(),
             &Collectable::Red => assets.red.clone(),
             &Collectable::Green => assets.green.clone(),
-            &Collectable::Tongue => assets.tongue.clone(),
         }
     }
 
@@ -73,15 +76,19 @@ impl Collectable {
                 frames: 6,
                 loop_animation: false,
             },
+            &Collectable::Tongue => Animate {
+                frames: 6,
+                loop_animation: true,
+            },
+            &Collectable::Frog => Animate {
+                frames: 6,
+                loop_animation: false,
+            },
             &Collectable::Red => Animate {
                 frames: 6,
                 loop_animation: true,
             },
             &Collectable::Green => Animate {
-                frames: 6,
-                loop_animation: true,
-            },
-            &Collectable::Tongue => Animate {
                 frames: 6,
                 loop_animation: true,
             },

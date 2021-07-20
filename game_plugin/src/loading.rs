@@ -40,6 +40,8 @@ pub struct RawTextureAssets {
     pub eye_sheet: Handle<Texture>,
     #[asset(path = "textures/tongue_sheet.png")]
     pub tongue_sheet: Handle<Texture>,
+    #[asset(path = "textures/frog_sheet.png")]
+    pub frog_sheet: Handle<Texture>,
     #[asset(path = "textures/cauldron.png")]
     pub cauldron: Handle<Texture>,
     #[asset(path = "textures/green.png")]
@@ -51,6 +53,7 @@ pub struct RawTextureAssets {
 pub struct TextureAssets {
     pub eye: Handle<TextureAtlas>,
     pub tongue: Handle<TextureAtlas>,
+    pub frog: Handle<TextureAtlas>,
     pub green: Handle<TextureAtlas>,
     pub red: Handle<TextureAtlas>,
 }
@@ -68,6 +71,12 @@ impl FromWorld for TextureAssets {
             )),
             tongue: texture_atlases.add(TextureAtlas::from_grid(
                 raw_textures.tongue_sheet.clone(),
+                Vec2::new(64., 64.),
+                6,
+                1,
+            )),
+            frog: texture_atlases.add(TextureAtlas::from_grid(
+                raw_textures.frog_sheet.clone(),
                 Vec2::new(64., 64.),
                 6,
                 1,

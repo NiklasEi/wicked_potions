@@ -74,7 +74,7 @@ struct AnimationTimer {
 impl Default for AnimationTimer {
     fn default() -> Self {
         AnimationTimer {
-            timer: Timer::from_seconds(0.3, true),
+            timer: Timer::from_seconds(0.2, true),
         }
     }
 }
