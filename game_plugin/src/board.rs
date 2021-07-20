@@ -15,7 +15,8 @@ impl Plugin for BoardPlugin {
             .add_system_set(
                 SystemSet::on_enter(GameState::Playing)
                     .with_system(set_camera.system())
-                    .with_system(prepare_board.system()),
+                    .with_system(prepare_board.system())
+                    .with_system(setup_cauldron.system()),
             )
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
@@ -77,6 +78,18 @@ impl Recipe {
 pub struct Ingredients {
     amount: usize,
     collectable: Collectable,
+}
+
+fn setup_cauldron(
+    mut commands: Commands,
+    textures: Res<RawTextureAssets>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    commands.spawn_bundle(SpriteBundle {
+        material: materials.add(textures.cauldron.clone().into()),
+        transform: Transform::from_translation(Vec3::new(800. - 144., 96., 0.)),
+        ..SpriteBundle::default()
+    });
 }
 
 fn set_camera(mut commands: Commands) {
