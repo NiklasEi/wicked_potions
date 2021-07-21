@@ -1,5 +1,5 @@
 use crate::animate::Animate;
-use crate::loading::{RawTextureAssets, TextureAssets};
+use crate::loading::TextureAssets;
 use bevy::prelude::*;
 use rand::distributions::Standard;
 use rand::prelude::Distribution;
@@ -38,7 +38,7 @@ impl Slot {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Hash, Eq)]
 pub enum Collectable {
     Eye,
     Tongue,

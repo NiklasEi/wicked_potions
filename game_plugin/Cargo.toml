@@ -13,6 +13,7 @@ default = [
     "bevy/bevy_winit",
     "bevy/render",
     "bevy/png",
+    "bevy/jpeg",
     "bevy_kira_audio/ogg"
 ]
 

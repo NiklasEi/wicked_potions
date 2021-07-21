@@ -1,6 +1,7 @@
 mod animate;
 mod audio;
 mod board;
+mod hud;
 mod loading;
 mod matcher;
 mod menu;
@@ -8,6 +9,7 @@ mod menu;
 use crate::animate::AnimatePlugin;
 use crate::audio::InternalAudioPlugin;
 use crate::board::BoardPlugin;
+use crate::hud::HudPlugin;
 use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
 
@@ -39,7 +41,8 @@ impl Plugin for GamePlugin {
             .add_plugin(MenuPlugin)
             .add_plugin(InternalAudioPlugin)
             .add_plugin(BoardPlugin)
-            .add_plugin(AnimatePlugin);
+            .add_plugin(AnimatePlugin)
+            .add_plugin(HudPlugin);
 
         #[cfg(debug_assertions)]
         {
