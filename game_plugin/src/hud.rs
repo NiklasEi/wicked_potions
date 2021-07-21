@@ -25,7 +25,6 @@ fn setup_ui(
 ) {
     let mut index = 0;
     for ingredient in cauldron.recipe.ingredients.iter() {
-        println!("spawn text");
         commands
             .spawn_bundle(Text2dBundle {
                 text: Text {
@@ -69,8 +68,6 @@ fn setup_ui(
 
 fn update_recipe(cauldron: Res<Cauldron>, mut text: Query<(&mut Text, &Collectable), With<Ui>>) {
     if cauldron.is_changed() || cauldron.is_added() {
-        // Todo display current recipe
-        println!("{:?}", *cauldron);
         for (mut text, collectable) in text.iter_mut() {
             text.sections.first_mut().unwrap().value = format!(
                 "{}/{}",

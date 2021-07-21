@@ -1,5 +1,6 @@
 use crate::animate::{Animate, Move};
-use crate::loading::{RawTextureAssets, TextureAssets};
+use crate::audio::AudioEffect;
+use crate::loading::{AudioAssets, RawTextureAssets, TextureAssets};
 use crate::matcher::{Collectable, Pattern, Slot, SlotContent};
 use crate::{GameState, SystemLabels};
 use bevy::prelude::*;
@@ -199,6 +200,8 @@ fn user_selection(
     mut commands: Commands,
     mut selection: ResMut<Selected>,
     windows: Res<Windows>,
+    mut effects: EventWriter<AudioEffect>,
+    audio: Res<AudioAssets>,
     mouse_buttons: Res<Input<MouseButton>>,
     mut board: ResMut<Board>,
 ) {
@@ -230,7 +233,9 @@ fn user_selection(
                     return;
                 }
                 if !board.has_pattern_after_switch(one, &slot) {
-                    // ToDo: "No" sound + small animation?
+                    effects.send(AudioEffect {
+                        handle: audio.no.clone(),
+                    });
                     return;
                 }
                 commands
