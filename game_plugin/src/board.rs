@@ -98,13 +98,19 @@ pub struct Ingredients {
 fn setup_shop(
     mut commands: Commands,
     textures: Res<RawTextureAssets>,
+    atlases: Res<TextureAssets>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    commands.spawn_bundle(SpriteBundle {
-        material: materials.add(textures.cauldron.clone().into()),
-        transform: Transform::from_translation(Vec3::new(800. - 132., 96., 1.)),
-        ..SpriteBundle::default()
-    });
+    commands
+        .spawn_bundle(SpriteSheetBundle {
+            texture_atlas: atlases.cauldron.clone(),
+            transform: Transform::from_translation(Vec3::new(800. - 132., 96., 1.)),
+            ..SpriteSheetBundle::default()
+        })
+        .insert(Animate {
+            frames: 6,
+            loop_animation: true,
+        });
     commands.spawn_bundle(SpriteBundle {
         material: materials.add(textures.shelf.clone().into()),
         transform: Transform::from_translation(Vec3::new(400., 300., 0.)),

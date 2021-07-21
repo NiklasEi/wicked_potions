@@ -43,17 +43,19 @@ pub enum Collectable {
     Eye,
     Tongue,
     Frog,
+    Heart,
     Red,
     Green,
 }
 
 impl Distribution<Collectable> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Collectable {
-        match rng.gen_range(0..5) {
+        match rng.gen_range(0..6) {
             0 => Collectable::Eye,
             1 => Collectable::Tongue,
             2 => Collectable::Frog,
-            3 => Collectable::Green,
+            3 => Collectable::Heart,
+            4 => Collectable::Green,
             _ => Collectable::Red,
         }
     }
@@ -65,6 +67,7 @@ impl Collectable {
             &Collectable::Eye => assets.eye.clone(),
             &Collectable::Tongue => assets.tongue.clone(),
             &Collectable::Frog => assets.frog.clone(),
+            &Collectable::Heart => assets.heart.clone(),
             &Collectable::Red => assets.red.clone(),
             &Collectable::Green => assets.green.clone(),
         }
@@ -83,6 +86,10 @@ impl Collectable {
             &Collectable::Frog => Animate {
                 frames: 6,
                 loop_animation: false,
+            },
+            &Collectable::Heart => Animate {
+                frames: 6,
+                loop_animation: true,
             },
             &Collectable::Red => Animate {
                 frames: 6,

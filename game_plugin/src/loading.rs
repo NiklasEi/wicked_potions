@@ -42,10 +42,12 @@ pub struct RawTextureAssets {
     pub tongue_sheet: Handle<Texture>,
     #[asset(path = "textures/frog_sheet.png")]
     pub frog_sheet: Handle<Texture>,
+    #[asset(path = "textures/heart_sheet.png")]
+    pub heart_sheet: Handle<Texture>,
     #[asset(path = "textures/shelf.jpg")]
     pub shelf: Handle<Texture>,
     #[asset(path = "textures/cauldron.png")]
-    pub cauldron: Handle<Texture>,
+    pub cauldron_sheet: Handle<Texture>,
     #[asset(path = "textures/green.png")]
     pub green: Handle<Texture>,
     #[asset(path = "textures/red.png")]
@@ -56,8 +58,10 @@ pub struct TextureAssets {
     pub eye: Handle<TextureAtlas>,
     pub tongue: Handle<TextureAtlas>,
     pub frog: Handle<TextureAtlas>,
+    pub heart: Handle<TextureAtlas>,
     pub green: Handle<TextureAtlas>,
     pub red: Handle<TextureAtlas>,
+    pub cauldron: Handle<TextureAtlas>,
 }
 
 impl FromWorld for TextureAssets {
@@ -83,6 +87,12 @@ impl FromWorld for TextureAssets {
                 6,
                 1,
             )),
+            heart: texture_atlases.add(TextureAtlas::from_grid(
+                raw_textures.heart_sheet.clone(),
+                Vec2::new(64., 64.),
+                6,
+                1,
+            )),
             green: texture_atlases.add(TextureAtlas::from_grid(
                 raw_textures.green.clone(),
                 Vec2::new(64., 64.),
@@ -92,6 +102,12 @@ impl FromWorld for TextureAssets {
             red: texture_atlases.add(TextureAtlas::from_grid(
                 raw_textures.red.clone(),
                 Vec2::new(64., 64.),
+                6,
+                1,
+            )),
+            cauldron: texture_atlases.add(TextureAtlas::from_grid(
+                raw_textures.cauldron_sheet.clone(),
+                Vec2::new(192., 192.),
                 6,
                 1,
             )),

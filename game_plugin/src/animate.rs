@@ -13,7 +13,7 @@ impl Plugin for AnimatePlugin {
             SystemSet::on_update(GameState::Playing)
                 .label(SystemLabels::Animate)
                 .with_system(move_collectables.system())
-                .with_system(animate_collectables.system())
+                .with_system(animate_atlases.system())
                 .with_system(reset_animations.system()),
         );
     }
@@ -143,7 +143,7 @@ impl Default for AnimationTimer {
     }
 }
 
-fn animate_collectables(
+fn animate_atlases(
     time: Res<Time>,
     mut timer: Local<AnimationTimer>,
     mut animations: Query<(&mut TextureAtlasSprite, &Animate)>,
