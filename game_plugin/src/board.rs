@@ -101,12 +101,12 @@ fn setup_shop(
 ) {
     commands.spawn_bundle(SpriteBundle {
         material: materials.add(textures.cauldron.clone().into()),
-        transform: Transform::from_translation(Vec3::new(800. - 132., 96., 0.)),
+        transform: Transform::from_translation(Vec3::new(800. - 132., 96., 1.)),
         ..SpriteBundle::default()
     });
     commands.spawn_bundle(SpriteBundle {
         material: materials.add(textures.shelf.clone().into()),
-        transform: Transform::from_translation(Vec3::new(12. + 4. * 64., 4.5 * 64., 0.)),
+        transform: Transform::from_translation(Vec3::new(400., 300., 0.)),
         ..SpriteBundle::default()
     });
 }
@@ -554,7 +554,7 @@ fn drop_random_collectable(
     let entity = commands
         .spawn_bundle(SpriteSheetBundle {
             texture_atlas: collectable.get_texture(textures),
-            transform: Transform::from_translation(Vec3::new(goal.x, goal.y + drop_height, 0.)),
+            transform: Transform::from_translation(Vec3::new(goal.x, goal.y + drop_height, 5.)),
             ..SpriteSheetBundle::default()
         })
         .insert(vec![Move::move_to(goal)])

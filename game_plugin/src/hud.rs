@@ -42,7 +42,7 @@ fn setup_ui(
                 transform: Transform::from_translation(Vec3::new(
                     800. - (index + 1) as f32 * 76. + 18.,
                     550.,
-                    1.,
+                    10.,
                 )),
                 ..Text2dBundle::default()
             })
@@ -51,7 +51,7 @@ fn setup_ui(
         let mut icon_transform = Transform::from_translation(Vec3::new(
             800. - (index + 1) as f32 * 76. + 38.,
             550. + 7.,
-            1.,
+            10.,
         ));
         icon_transform.scale = Vec3::new(0.5, 0.5, 0.5);
         commands.spawn_bundle(SpriteSheetBundle {
