@@ -2158,17 +2158,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mischievous_potions"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy_webgl2",
- "embed-resource",
- "game_plugin",
- "winit",
-]
-
-[[package]]
 name = "naga"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3442,6 +3431,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72fa9ba80626278fd87351555c363378d08122d7601e58319be3d6fa85a87747"
 dependencies = [
  "bitflags",
+]
+
+[[package]]
+name = "wicked_potions"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_webgl2",
+ "embed-resource",
+ "game_plugin",
+ "winit",
 ]
 
 [[package]]

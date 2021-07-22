@@ -1,5 +1,5 @@
 [package]
-name = "mischievous_potions"
+name = "wicked_potions"
 version = "0.1.0"
 publish = false
 authors = ["Niklas Eicker <git@nikl.me>"]

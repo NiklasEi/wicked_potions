@@ -1,4 +1,4 @@
-# Mischievous Potions
+# Wicked Potions
 
 * Submission for [Bored Pixels Jam 8][jam] written in Rust using the game engine [Bevy][bevy]
 
