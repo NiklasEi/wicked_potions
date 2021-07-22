@@ -14,7 +14,7 @@ fn main() {
         .insert_resource(WindowDescriptor {
             width: 800.,
             height: 600.,
-            title: "Bevy game".to_string(), // ToDo
+            title: "Mischievous Potions".to_string(),
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)

@@ -33,7 +33,8 @@ impl Plugin for BoardPlugin {
                             .system()
                             .label(SystemLabels::UserInput)
                             .after(SystemLabels::MatchPatterns),
-                    ),
+                    )
+                    .with_system(check_possibilities.system()),
             );
     }
 }
@@ -264,6 +265,31 @@ fn user_selection(
             }
         }
     }
+}
+
+fn check_possibilities(board: Res<Board>) {
+    let mut board = board.clone();
+    for column in 0..(board.width - 1) {
+        for row in 0..(board.height - 1) {
+            let current = Slot { column, row };
+            let next_column = Slot {
+                column: column + 1,
+                row,
+            };
+            let next_row = Slot {
+                column,
+                row: row + 1,
+            };
+            if board.has_pattern_after_switch(&current, &next_column)
+                || board.has_pattern_after_switch(&current, &next_row)
+            {
+                return;
+            }
+        }
+    }
+
+    // Todo
+    println!("out of moves!")
 }
 
 #[derive(Clone, Debug)]

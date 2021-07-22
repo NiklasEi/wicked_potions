@@ -99,7 +99,6 @@ fn move_collectables(
                 animations.remove(0);
                 animations.insert(0, Move::throw_in_cauldron());
             } else if animate.throw_in_cauldron {
-                // Todo send event with collectable to add to UI / cauldron
                 commands.entity(entity).despawn();
                 let current = cauldron.content.get(collectable).unwrap_or(&0);
                 if !cauldron.recipe.ingredients.iter().any(|ingredient| {

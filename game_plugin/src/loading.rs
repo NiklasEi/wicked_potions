@@ -52,6 +52,12 @@ pub struct RawTextureAssets {
     pub green: Handle<Texture>,
     #[asset(path = "textures/red.png")]
     pub red: Handle<Texture>,
+    #[asset(path = "textures/yellow.png")]
+    pub yellow: Handle<Texture>,
+    #[asset(path = "textures/blue.png")]
+    pub blue: Handle<Texture>,
+    #[asset(path = "textures/grey.png")]
+    pub grey: Handle<Texture>,
 }
 
 pub struct TextureAssets {
@@ -61,6 +67,9 @@ pub struct TextureAssets {
     pub heart: Handle<TextureAtlas>,
     pub green: Handle<TextureAtlas>,
     pub red: Handle<TextureAtlas>,
+    pub yellow: Handle<TextureAtlas>,
+    pub blue: Handle<TextureAtlas>,
+    pub grey: Handle<TextureAtlas>,
     pub cauldron: Handle<TextureAtlas>,
 }
 
@@ -101,6 +110,24 @@ impl FromWorld for TextureAssets {
             )),
             red: texture_atlases.add(TextureAtlas::from_grid(
                 raw_textures.red.clone(),
+                Vec2::new(64., 64.),
+                6,
+                1,
+            )),
+            yellow: texture_atlases.add(TextureAtlas::from_grid(
+                raw_textures.yellow.clone(),
+                Vec2::new(64., 64.),
+                6,
+                1,
+            )),
+            grey: texture_atlases.add(TextureAtlas::from_grid(
+                raw_textures.grey.clone(),
+                Vec2::new(64., 64.),
+                6,
+                1,
+            )),
+            blue: texture_atlases.add(TextureAtlas::from_grid(
+                raw_textures.blue.clone(),
                 Vec2::new(64., 64.),
                 6,
                 1,

@@ -5,14 +5,13 @@ on:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+*"
 
-# ToDo: adapt names
 env:
-  GAME_EXECUTABLE_NAME: bevy_game
-  GAME_OSX_APP_NAME: BevyGame
+  GAME_EXECUTABLE_NAME: mischievous_potions
+  GAME_OSX_APP_NAME: MischievousPotions
 
 jobs:
   build-macOS:
-    runs-on: macOS-latest
+    runs-on: macos-latest
 
     steps:
       - name: Get tag
