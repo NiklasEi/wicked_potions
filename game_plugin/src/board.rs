@@ -45,8 +45,10 @@ impl Plugin for BoardPlugin {
                         check_recipe_completion
                             .system()
                             .after(SystemLabels::Animate),
-                    ),
-            );
+                    )
+                    .with_system(lose.system()),
+            )
+            .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(reset.system()));
     }
 }
 
@@ -139,16 +141,20 @@ fn setup_shop(
     });
 }
 
+struct Scroll;
+
 fn show_scroll(
     mut commands: Commands,
     textures: Res<RawTextureAssets>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    commands.spawn_bundle(SpriteBundle {
-        material: materials.add(textures.scroll.clone().into()),
-        transform: Transform::from_translation(Vec3::new(670., 400., 4.)),
-        ..SpriteBundle::default()
-    });
+    commands
+        .spawn_bundle(SpriteBundle {
+            material: materials.add(textures.scroll.clone().into()),
+            transform: Transform::from_translation(Vec3::new(670., 400., 4.)),
+            ..SpriteBundle::default()
+        })
+        .insert(Scroll);
 }
 
 fn set_camera(mut commands: Commands) {
@@ -304,6 +310,8 @@ fn check_recipe_completion(
     mut cauldron: ResMut<Cauldron>,
     mut finished_recipe: EventWriter<FinishedRecipe>,
     mut score: ResMut<Score>,
+    mut audio_effect: EventWriter<AudioEffect>,
+    audio_assets: Res<AudioAssets>,
 ) {
     if cauldron.is_changed() {
         for ingredient in cauldron.recipe.ingredients.iter() {
@@ -319,12 +327,33 @@ fn check_recipe_completion(
         score.money += cauldron.recipe.reward;
         cauldron.finished_recipes += 1;
         cauldron.new_recipe();
-
+        audio_effect.send(AudioEffect {
+            handle: audio_assets.potion_complete.clone(),
+        });
         finished_recipe.send(FinishedRecipe);
     }
 }
 
-fn check_possibilities(board: Res<Board>) {
+fn lose(
+    input: Res<Input<KeyCode>>,
+    mut state: ResMut<State<GameState>>,
+    mut audio_effect: EventWriter<AudioEffect>,
+    audio_assets: Res<AudioAssets>,
+) {
+    if input.just_pressed(KeyCode::R) {
+        audio_effect.send(AudioEffect {
+            handle: audio_assets.lost.clone(),
+        });
+        state.set(GameState::Lost).unwrap();
+    }
+}
+
+fn check_possibilities(
+    board: Res<Board>,
+    mut state: ResMut<State<GameState>>,
+    mut audio_effect: EventWriter<AudioEffect>,
+    audio_assets: Res<AudioAssets>,
+) {
     if board.is_changed() {
         let mut board = board.clone();
         for column in 0..(board.width - 1) {
@@ -345,9 +374,10 @@ fn check_possibilities(board: Res<Board>) {
                 }
             }
         }
-
-        // Todo
-        println!("out of moves!")
+        audio_effect.send(AudioEffect {
+            handle: audio_assets.lost.clone(),
+        });
+        state.set(GameState::Lost).unwrap();
     }
 }
 
@@ -660,6 +690,19 @@ fn drop_random_collectable(
     SlotContent {
         entity,
         collectable,
+    }
+}
+
+fn reset(
+    mut commands: Commands,
+    collectables: Query<Entity, With<Collectable>>,
+    scroll: Query<Entity, With<Scroll>>,
+) {
+    for entity in collectables.iter() {
+        commands.entity(entity).despawn();
+    }
+    for entity in scroll.iter() {
+        commands.entity(entity).despawn();
     }
 }
 

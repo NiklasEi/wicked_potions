@@ -3,16 +3,18 @@ mod audio;
 mod board;
 mod hud;
 mod loading;
+mod lost;
 mod matcher;
 mod menu;
 
 use crate::animate::AnimatePlugin;
 use crate::audio::InternalAudioPlugin;
-use crate::board::{BoardPlugin, Cauldron, Score};
+use crate::board::BoardPlugin;
 use crate::hud::HudPlugin;
 use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
 
+use crate::lost::LostPlugin;
 use bevy::app::AppBuilder;
 #[cfg(debug_assertions)]
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
@@ -23,7 +25,7 @@ enum GameState {
     Loading,
     Playing,
     Menu,
-    Restart,
+    Lost,
 }
 
 #[derive(SystemLabel, Clone, Hash, Debug, Eq, PartialEq)]
@@ -44,9 +46,8 @@ impl Plugin for GamePlugin {
             .add_plugin(InternalAudioPlugin)
             .add_plugin(BoardPlugin)
             .add_plugin(AnimatePlugin)
-            .add_plugin(HudPlugin);
-
-        app.add_system_set(SystemSet::on_enter(GameState::Restart).with_system(restart.system()));
+            .add_plugin(HudPlugin)
+            .add_plugin(LostPlugin);
 
         #[cfg(debug_assertions)]
         {
@@ -54,14 +55,4 @@ impl Plugin for GamePlugin {
                 .add_plugin(LogDiagnosticsPlugin::default());
         }
     }
-}
-
-fn restart(
-    mut state: ResMut<State<GameState>>,
-    mut cauldron: ResMut<Cauldron>,
-    mut score: ResMut<Score>,
-) {
-    *cauldron = Cauldron::new();
-    score.money = 0;
-    state.set(GameState::Playing).unwrap();
 }

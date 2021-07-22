@@ -15,8 +15,7 @@ impl Plugin for InternalAudioPlugin {
         .add_plugin(AudioPlugin)
         .add_event::<AudioEffect>()
         .add_system_set(SystemSet::on_enter(GameState::Menu).with_system(start_audio.system()))
-        .add_system_set(SystemSet::on_update(GameState::Playing).with_system(play_effect.system()))
-        .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(stop_audio.system()));
+        .add_system(play_effect.system());
     }
 }
 
@@ -46,8 +45,4 @@ fn play_effect(
     for effect in events.iter() {
         audio.play_in_channel(effect.handle.clone(), &channels.effects)
     }
-}
-
-fn stop_audio(audio: Res<Audio>, channels: Res<AudioChannels>) {
-    audio.stop_channel(&channels.effects);
 }

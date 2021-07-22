@@ -34,6 +34,10 @@ pub struct AudioAssets {
     pub no: Handle<AudioSource>,
     #[asset(path = "audio/background.ogg")]
     pub background: Handle<AudioSource>,
+    #[asset(path = "audio/lost.ogg")]
+    pub lost: Handle<AudioSource>,
+    #[asset(path = "audio/potion_complete.ogg")]
+    pub potion_complete: Handle<AudioSource>,
     #[asset(path = "audio/cooking.ogg")]
     pub cooking: Handle<AudioSource>,
 }

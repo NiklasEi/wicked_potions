@@ -23,6 +23,7 @@ impl Plugin for HudPlugin {
                     )
                     .with_system(update_score.system().after(SystemLabels::Animate)),
             )
+            .add_system_set(SystemSet::on_exit(GameState::Playing).with_system(remove.system()))
             .add_event::<FinishedRecipe>();
     }
 }
@@ -191,5 +192,11 @@ fn update_recipe(
                     .amount
             )
         }
+    }
+}
+
+fn remove(mut commands: Commands, elements: Query<Entity, With<Ui>>) {
+    for entity in elements.iter() {
+        commands.entity(entity).despawn();
     }
 }
