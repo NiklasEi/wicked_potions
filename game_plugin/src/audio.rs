@@ -9,6 +9,7 @@ impl Plugin for InternalAudioPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.insert_resource(AudioChannels {
             effects: AudioChannel::new("effects".to_owned()),
+            cooking: AudioChannel::new("cooking".to_owned()),
             background: AudioChannel::new("background".to_owned()),
         })
         .add_plugin(AudioPlugin)
@@ -22,6 +23,7 @@ impl Plugin for InternalAudioPlugin {
 struct AudioChannels {
     effects: AudioChannel,
     background: AudioChannel,
+    cooking: AudioChannel,
 }
 
 pub struct AudioEffect {
@@ -30,9 +32,10 @@ pub struct AudioEffect {
 
 fn start_audio(audio: Res<Audio>, channels: Res<AudioChannels>, audio_assets: Res<AudioAssets>) {
     audio.set_volume_in_channel(0.4, &channels.effects);
-    audio.set_volume_in_channel(0.4, &channels.background);
+    audio.set_volume_in_channel(0.3, &channels.background);
+    audio.set_volume_in_channel(1.0, &channels.cooking);
     audio.play_looped_in_channel(audio_assets.background.clone(), &channels.background);
-    audio.play_looped_in_channel(audio_assets.cooking.clone(), &channels.background);
+    audio.play_looped_in_channel(audio_assets.cooking.clone(), &channels.cooking);
 }
 
 fn play_effect(
