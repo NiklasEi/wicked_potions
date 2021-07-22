@@ -50,6 +50,12 @@ fn setup_menu(
                 margin: Rect::all(Val::Auto),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    right: Val::Px(70.0),
+                    top: Val::Px(90.0),
+                    ..Default::default()
+                },
                 ..Default::default()
             },
             material: button_materials.normal.clone(),
@@ -62,10 +68,51 @@ fn setup_menu(
                 .spawn_bundle(TextBundle {
                     text: Text {
                         sections: vec![TextSection {
-                            value: "Play".to_string(),
+                            value: "Brew".to_string(),
                             style: TextStyle {
                                 font: font_assets.fira_sans.clone(),
                                 font_size: 40.0,
+                                color: Color::rgb(0.9, 0.9, 0.9),
+                            },
+                        }],
+                        alignment: Default::default(),
+                    },
+                    ..Default::default()
+                })
+                .insert(Menu);
+        });
+    commands
+        .spawn_bundle(NodeBundle {
+            style: Style {
+                size: Size::new(Val::Px(120.0), Val::Px(50.0)),
+                margin: Rect::all(Val::Auto),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    right: Val::Px(70.0),
+                    top: Val::Px(180.0),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            visible: Visible {
+                is_visible: false,
+                is_transparent: true,
+            },
+            ..Default::default()
+        })
+        .insert(Menu)
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(TextBundle {
+                    text: Text {
+                        sections: vec![TextSection {
+                            value: "Match ingredients\nand brew Potions\nfor the evil\ncause"
+                                .to_string(),
+                            style: TextStyle {
+                                font: font_assets.fira_sans.clone(),
+                                font_size: 20.0,
                                 color: Color::rgb(0.9, 0.9, 0.9),
                             },
                         }],

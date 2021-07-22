@@ -40,7 +40,7 @@ impl Plugin for BoardPlugin {
                             .label(SystemLabels::UserInput)
                             .after(SystemLabels::MatchPatterns),
                     )
-                    .with_system(check_possibilities.system())
+                    .with_system(check_possibilities.system().before(SystemLabels::UserInput))
                     .with_system(
                         check_recipe_completion
                             .system()
@@ -354,7 +354,7 @@ fn check_possibilities(
     mut audio_effect: EventWriter<AudioEffect>,
     audio_assets: Res<AudioAssets>,
 ) {
-    if board.is_changed() {
+    if board.is_changed() && !board.animating {
         let mut board = board.clone();
         for column in 0..(board.width - 1) {
             for row in 0..(board.height - 1) {
