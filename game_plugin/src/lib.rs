@@ -8,7 +8,7 @@ mod menu;
 
 use crate::animate::AnimatePlugin;
 use crate::audio::InternalAudioPlugin;
-use crate::board::BoardPlugin;
+use crate::board::{BoardPlugin, Cauldron, Score};
 use crate::hud::HudPlugin;
 use crate::loading::LoadingPlugin;
 use crate::menu::MenuPlugin;
@@ -23,6 +23,7 @@ enum GameState {
     Loading,
     Playing,
     Menu,
+    Restart,
 }
 
 #[derive(SystemLabel, Clone, Hash, Debug, Eq, PartialEq)]
@@ -45,10 +46,22 @@ impl Plugin for GamePlugin {
             .add_plugin(AnimatePlugin)
             .add_plugin(HudPlugin);
 
+        app.add_system_set(SystemSet::on_enter(GameState::Restart).with_system(restart.system()));
+
         #[cfg(debug_assertions)]
         {
             app.add_plugin(FrameTimeDiagnosticsPlugin::default())
                 .add_plugin(LogDiagnosticsPlugin::default());
         }
     }
+}
+
+fn restart(
+    mut state: ResMut<State<GameState>>,
+    mut cauldron: ResMut<Cauldron>,
+    mut score: ResMut<Score>,
+) {
+    *cauldron = Cauldron::new();
+    score.money = 0;
+    state.set(GameState::Playing).unwrap();
 }

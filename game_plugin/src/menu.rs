@@ -31,6 +31,8 @@ impl FromWorld for ButtonMaterials {
     }
 }
 
+struct Menu;
+
 struct PlayButton;
 
 fn setup_menu(
@@ -38,7 +40,9 @@ fn setup_menu(
     font_assets: Res<FontAssets>,
     button_materials: Res<ButtonMaterials>,
 ) {
-    commands.spawn_bundle(UiCameraBundle::default());
+    commands
+        .spawn_bundle(UiCameraBundle::default())
+        .insert(Menu);
     commands
         .spawn_bundle(ButtonBundle {
             style: Style {
@@ -52,44 +56,43 @@ fn setup_menu(
             ..Default::default()
         })
         .insert(PlayButton)
+        .insert(Menu)
         .with_children(|parent| {
-            parent.spawn_bundle(TextBundle {
-                text: Text {
-                    sections: vec![TextSection {
-                        value: "Play".to_string(),
-                        style: TextStyle {
-                            font: font_assets.fira_sans.clone(),
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                        },
-                    }],
-                    alignment: Default::default(),
-                },
-                ..Default::default()
-            });
+            parent
+                .spawn_bundle(TextBundle {
+                    text: Text {
+                        sections: vec![TextSection {
+                            value: "Play".to_string(),
+                            style: TextStyle {
+                                font: font_assets.fira_sans.clone(),
+                                font_size: 40.0,
+                                color: Color::rgb(0.9, 0.9, 0.9),
+                            },
+                        }],
+                        alignment: Default::default(),
+                    },
+                    ..Default::default()
+                })
+                .insert(Menu);
         });
 }
-
-type ButtonInteraction<'a> = (
-    Entity,
-    &'a Interaction,
-    &'a mut Handle<ColorMaterial>,
-    &'a Children,
-);
 
 fn click_play_button(
     mut commands: Commands,
     button_materials: Res<ButtonMaterials>,
     mut state: ResMut<State<GameState>>,
-    mut interaction_query: Query<ButtonInteraction, (Changed<Interaction>, With<Button>)>,
-    text_query: Query<Entity, With<Text>>,
+    mut interaction_query: Query<
+        (&Interaction, &mut Handle<ColorMaterial>),
+        (Changed<Interaction>, With<Button>),
+    >,
+    menu_elements: Query<Entity, With<Menu>>,
 ) {
-    for (button, interaction, mut material, children) in interaction_query.iter_mut() {
-        let text = text_query.get(children[0]).unwrap();
+    for (interaction, mut material) in interaction_query.iter_mut() {
         match *interaction {
             Interaction::Clicked => {
-                commands.entity(button).despawn();
-                commands.entity(text).despawn();
+                for entity in menu_elements.iter() {
+                    commands.entity(entity).despawn();
+                }
                 state.set(GameState::Playing).unwrap();
             }
             Interaction::Hovered => {

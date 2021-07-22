@@ -42,7 +42,7 @@ fn setup_ui(
         .spawn_bundle(Text2dBundle {
             text: Text {
                 sections: vec![TextSection {
-                    value: format!("Completed {} potions", 0),
+                    value: format!("x{}", 0),
                     style: TextStyle {
                         font: fonts.fira_sans.clone(),
                         font_size: 15.,
@@ -51,7 +51,7 @@ fn setup_ui(
                 }],
                 alignment: Default::default(),
             },
-            transform: Transform::from_translation(Vec3::new(800. - 76., 350., 10.)),
+            transform: Transform::from_translation(Vec3::new(650., 323., 10.)),
             ..Text2dBundle::default()
         })
         .insert(Ui)
@@ -60,7 +60,7 @@ fn setup_ui(
         .spawn_bundle(Text2dBundle {
             text: Text {
                 sections: vec![TextSection {
-                    value: format!("Treasury {}$", 0),
+                    value: format!("x{}", 0),
                     style: TextStyle {
                         font: fonts.fira_sans.clone(),
                         font_size: 15.,
@@ -69,7 +69,7 @@ fn setup_ui(
                 }],
                 alignment: Default::default(),
             },
-            transform: Transform::from_translation(Vec3::new(800. - 76., 310., 10.)),
+            transform: Transform::from_translation(Vec3::new(800. - 75., 323., 10.)),
             ..Text2dBundle::default()
         })
         .insert(Ui)
@@ -89,14 +89,12 @@ fn finished_recipe(
     recipe_ui_components: Query<Entity, (With<Ui>, With<Collectable>)>,
 ) {
     for _event in events.iter() {
-        println!("finished recipe: {:?}", *cauldron);
-
         for entity in recipe_ui_components.iter() {
             commands.entity(entity).despawn();
         }
         display_ingredients(&mut commands, &cauldron, &fonts, &textures);
         if let Ok(mut text) = potions_count.single_mut() {
-            text.sections[0].value = format!("Completed {} potions", cauldron.finished_recipes);
+            text.sections[0].value = format!("x{}", cauldron.finished_recipes);
         }
     }
 }
@@ -166,7 +164,7 @@ fn update_score(
 ) {
     if score.is_changed() {
         if let Ok(mut text) = potions_count.single_mut() {
-            text.sections[0].value = format!("Treasury {}$", score.money);
+            text.sections[0].value = format!("x{}", score.money);
         }
     }
 }

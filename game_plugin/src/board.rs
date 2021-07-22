@@ -85,8 +85,6 @@ pub struct Recipe {
 }
 
 impl Recipe {
-    // ToDo: make random
-
     pub fn build_random() -> Self {
         // get three random collectables
         let mut rng = thread_rng();
@@ -318,7 +316,6 @@ fn check_recipe_completion(
             }
         }
 
-        println!("recipe complete!");
         score.money += cauldron.recipe.reward;
         cauldron.finished_recipes += 1;
         cauldron.new_recipe();
