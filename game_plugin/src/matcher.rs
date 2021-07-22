@@ -49,15 +49,14 @@ pub enum Collectable {
 
 impl Distribution<Collectable> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Collectable {
-        match rng.gen_range(0..8) {
+        match rng.gen_range(0..7) {
             0 => Collectable::Eye,
             1 => Collectable::Tongue,
             2 => Collectable::Frog,
             3 => Collectable::Heart,
             4 => Collectable::Spider,
             5 => Collectable::Jar,
-            6 => Collectable::Teeth,
-            _ => Collectable::Yellow,
+            _ => Collectable::Teeth,
         }
     }
 }

@@ -34,6 +34,8 @@ pub struct AudioAssets {
     pub no: Handle<AudioSource>,
     #[asset(path = "audio/background.ogg")]
     pub background: Handle<AudioSource>,
+    #[asset(path = "audio/cooking.ogg")]
+    pub cooking: Handle<AudioSource>,
 }
 
 #[derive(AssetCollection, Clone)]

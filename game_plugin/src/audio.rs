@@ -31,7 +31,8 @@ pub struct AudioEffect {
 fn start_audio(audio: Res<Audio>, channels: Res<AudioChannels>, audio_assets: Res<AudioAssets>) {
     audio.set_volume_in_channel(0.4, &channels.effects);
     audio.set_volume_in_channel(0.4, &channels.background);
-    audio.play_looped_in_channel(audio_assets.background.clone(), &channels.background)
+    audio.play_looped_in_channel(audio_assets.background.clone(), &channels.background);
+    audio.play_looped_in_channel(audio_assets.cooking.clone(), &channels.background);
 }
 
 fn play_effect(
