@@ -22,7 +22,9 @@ impl Plugin for BoardPlugin {
                     .with_system(set_camera.system()),
             )
             .add_system_set(
-                SystemSet::on_enter(GameState::Playing).with_system(prepare_board.system()),
+                SystemSet::on_enter(GameState::Playing)
+                    .with_system(prepare_board.system())
+                    .with_system(show_scroll.system()),
             )
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
@@ -135,6 +137,18 @@ fn setup_shop(
     commands.spawn_bundle(SpriteBundle {
         material: materials.add(textures.shelf.clone().into()),
         transform: Transform::from_translation(Vec3::new(400., 300., 0.)),
+        ..SpriteBundle::default()
+    });
+}
+
+fn show_scroll(
+    mut commands: Commands,
+    textures: Res<RawTextureAssets>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    commands.spawn_bundle(SpriteBundle {
+        material: materials.add(textures.scroll.clone().into()),
+        transform: Transform::from_translation(Vec3::new(670., 400., 4.)),
         ..SpriteBundle::default()
     });
 }

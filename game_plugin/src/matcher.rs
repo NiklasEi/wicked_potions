@@ -43,7 +43,6 @@ pub enum Collectable {
     Spider,
     Jar,
     Teeth,
-    Red,
     Yellow,
 }
 
@@ -71,7 +70,6 @@ impl Collectable {
             &Collectable::Spider => assets.spider.clone(),
             &Collectable::Jar => assets.jar.clone(),
             &Collectable::Teeth => assets.teeth.clone(),
-            &Collectable::Red => assets.red.clone(),
             &Collectable::Yellow => assets.yellow.clone(),
         }
     }
@@ -104,10 +102,6 @@ impl Collectable {
             },
             &Collectable::Teeth => Animate {
                 frames: 4,
-                loop_animation: true,
-            },
-            &Collectable::Red => Animate {
-                frames: 6,
                 loop_animation: true,
             },
             &Collectable::Yellow => Animate {

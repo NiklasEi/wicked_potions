@@ -58,8 +58,8 @@ pub struct RawTextureAssets {
     pub shelf: Handle<Texture>,
     #[asset(path = "textures/cauldron.png")]
     pub cauldron_sheet: Handle<Texture>,
-    #[asset(path = "textures/red.png")]
-    pub red: Handle<Texture>,
+    #[asset(path = "textures/scroll.png")]
+    pub scroll: Handle<Texture>,
     #[asset(path = "textures/yellow.png")]
     pub yellow: Handle<Texture>,
 }
@@ -72,7 +72,6 @@ pub struct TextureAssets {
     pub spider: Handle<TextureAtlas>,
     pub jar: Handle<TextureAtlas>,
     pub teeth: Handle<TextureAtlas>,
-    pub red: Handle<TextureAtlas>,
     pub yellow: Handle<TextureAtlas>,
     pub cauldron: Handle<TextureAtlas>,
 }
@@ -122,12 +121,6 @@ impl FromWorld for TextureAssets {
                 raw_textures.teeth.clone(),
                 Vec2::new(64., 64.),
                 4,
-                1,
-            )),
-            red: texture_atlases.add(TextureAtlas::from_grid(
-                raw_textures.red.clone(),
-                Vec2::new(64., 64.),
-                6,
                 1,
             )),
             yellow: texture_atlases.add(TextureAtlas::from_grid(
