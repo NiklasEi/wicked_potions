@@ -275,6 +275,9 @@ fn user_selection(
                     commands
                         .entity(tile_two.entity)
                         .insert(tile_two.collectable.get_animation());
+                    effects.send(AudioEffect {
+                        handle: audio.select.clone(),
+                    });
                     *selection = Some(slot);
                     return;
                 }
@@ -284,6 +287,9 @@ fn user_selection(
                     });
                     return;
                 }
+                effects.send(AudioEffect {
+                    handle: audio.select.clone(),
+                });
                 commands
                     .entity(tile_one.entity)
                     .insert(vec![Move::move_to_slot(&slot)]);
@@ -297,6 +303,9 @@ fn user_selection(
                     .insert(TextureAtlasSprite::default());
                 *selection = None;
             } else {
+                effects.send(AudioEffect {
+                    handle: audio.select.clone(),
+                });
                 commands
                     .entity(tile_two.entity)
                     .insert(tile_two.collectable.get_animation());
