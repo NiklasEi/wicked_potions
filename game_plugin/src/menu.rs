@@ -91,7 +91,7 @@ fn setup_menu(
                 position_type: PositionType::Absolute,
                 position: Rect {
                     right: Val::Px(70.0),
-                    top: Val::Px(180.0),
+                    top: Val::Px(210.0),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -108,7 +108,7 @@ fn setup_menu(
                 .spawn_bundle(TextBundle {
                     text: Text {
                         sections: vec![TextSection {
-                            value: "Match ingredients\nand brew Potions\nfor the evil\ncause"
+                            value: "Match ingredients\nand brew Potions\nfor the evil cause"
                                 .to_string(),
                             style: TextStyle {
                                 font: font_assets.fira_sans.clone(),
