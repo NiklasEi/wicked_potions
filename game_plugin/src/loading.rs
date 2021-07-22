@@ -50,6 +50,8 @@ pub struct RawTextureAssets {
     pub spider: Handle<Texture>,
     #[asset(path = "textures/jar_sheet.png")]
     pub jar: Handle<Texture>,
+    #[asset(path = "textures/teeth_sheet.png")]
+    pub teeth: Handle<Texture>,
     #[asset(path = "textures/shelf.jpg")]
     pub shelf: Handle<Texture>,
     #[asset(path = "textures/cauldron.png")]
@@ -58,8 +60,6 @@ pub struct RawTextureAssets {
     pub red: Handle<Texture>,
     #[asset(path = "textures/yellow.png")]
     pub yellow: Handle<Texture>,
-    #[asset(path = "textures/blue.png")]
-    pub blue: Handle<Texture>,
 }
 
 pub struct TextureAssets {
@@ -69,9 +69,9 @@ pub struct TextureAssets {
     pub heart: Handle<TextureAtlas>,
     pub spider: Handle<TextureAtlas>,
     pub jar: Handle<TextureAtlas>,
+    pub teeth: Handle<TextureAtlas>,
     pub red: Handle<TextureAtlas>,
     pub yellow: Handle<TextureAtlas>,
-    pub blue: Handle<TextureAtlas>,
     pub cauldron: Handle<TextureAtlas>,
 }
 
@@ -116,6 +116,12 @@ impl FromWorld for TextureAssets {
                 4,
                 1,
             )),
+            teeth: texture_atlases.add(TextureAtlas::from_grid(
+                raw_textures.teeth.clone(),
+                Vec2::new(64., 64.),
+                4,
+                1,
+            )),
             red: texture_atlases.add(TextureAtlas::from_grid(
                 raw_textures.red.clone(),
                 Vec2::new(64., 64.),
@@ -124,12 +130,6 @@ impl FromWorld for TextureAssets {
             )),
             yellow: texture_atlases.add(TextureAtlas::from_grid(
                 raw_textures.yellow.clone(),
-                Vec2::new(64., 64.),
-                6,
-                1,
-            )),
-            blue: texture_atlases.add(TextureAtlas::from_grid(
-                raw_textures.blue.clone(),
                 Vec2::new(64., 64.),
                 6,
                 1,

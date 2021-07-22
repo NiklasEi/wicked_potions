@@ -42,9 +42,9 @@ pub enum Collectable {
     Heart,
     Spider,
     Jar,
+    Teeth,
     Red,
     Yellow,
-    Blue,
 }
 
 impl Distribution<Collectable> for Standard {
@@ -56,7 +56,7 @@ impl Distribution<Collectable> for Standard {
             3 => Collectable::Heart,
             4 => Collectable::Spider,
             5 => Collectable::Jar,
-            6 => Collectable::Red,
+            6 => Collectable::Teeth,
             _ => Collectable::Yellow,
         }
     }
@@ -71,9 +71,9 @@ impl Collectable {
             &Collectable::Heart => assets.heart.clone(),
             &Collectable::Spider => assets.spider.clone(),
             &Collectable::Jar => assets.jar.clone(),
+            &Collectable::Teeth => assets.teeth.clone(),
             &Collectable::Red => assets.red.clone(),
             &Collectable::Yellow => assets.yellow.clone(),
-            &Collectable::Blue => assets.blue.clone(),
         }
     }
 
@@ -103,15 +103,15 @@ impl Collectable {
                 frames: 4,
                 loop_animation: true,
             },
+            &Collectable::Teeth => Animate {
+                frames: 4,
+                loop_animation: true,
+            },
             &Collectable::Red => Animate {
                 frames: 6,
                 loop_animation: true,
             },
             &Collectable::Yellow => Animate {
-                frames: 6,
-                loop_animation: true,
-            },
-            &Collectable::Blue => Animate {
                 frames: 6,
                 loop_animation: true,
             },

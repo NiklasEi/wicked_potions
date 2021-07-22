@@ -1,7 +1,7 @@
+use crate::loading::AudioAssets;
 use crate::GameState;
 use bevy::prelude::*;
 use bevy_kira_audio::{Audio, AudioChannel, AudioPlugin, AudioSource};
-use crate::loading::AudioAssets;
 
 pub struct InternalAudioPlugin;
 
