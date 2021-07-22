@@ -24,10 +24,6 @@ pub struct Slot {
 }
 
 impl Slot {
-    pub fn new(row: usize, column: usize) -> Self {
-        Slot { row, column }
-    }
-
     pub fn walk(&self, row_delta: i64, column_delta: i64) -> Slot {
         Slot {
             row: usize::try_from(self.row as i64 + row_delta)
@@ -44,24 +40,23 @@ pub enum Collectable {
     Tongue,
     Frog,
     Heart,
+    Spider,
+    Jar,
     Red,
     Yellow,
-    Green,
     Blue,
-    Grey
 }
 
 impl Distribution<Collectable> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Collectable {
-        match rng.gen_range(0..9) {
+        match rng.gen_range(0..8) {
             0 => Collectable::Eye,
             1 => Collectable::Tongue,
             2 => Collectable::Frog,
             3 => Collectable::Heart,
-            4 => Collectable::Green,
-            5 => Collectable::Blue,
+            4 => Collectable::Spider,
+            5 => Collectable::Jar,
             6 => Collectable::Red,
-            7 => Collectable::Grey,
             _ => Collectable::Yellow,
         }
     }
@@ -74,10 +69,10 @@ impl Collectable {
             &Collectable::Tongue => assets.tongue.clone(),
             &Collectable::Frog => assets.frog.clone(),
             &Collectable::Heart => assets.heart.clone(),
+            &Collectable::Spider => assets.spider.clone(),
+            &Collectable::Jar => assets.jar.clone(),
             &Collectable::Red => assets.red.clone(),
             &Collectable::Yellow => assets.yellow.clone(),
-            &Collectable::Green => assets.green.clone(),
-            &Collectable::Grey => assets.grey.clone(),
             &Collectable::Blue => assets.blue.clone(),
         }
     }
@@ -100,19 +95,19 @@ impl Collectable {
                 frames: 6,
                 loop_animation: true,
             },
+            &Collectable::Spider => Animate {
+                frames: 6,
+                loop_animation: false,
+            },
+            &Collectable::Jar => Animate {
+                frames: 4,
+                loop_animation: true,
+            },
             &Collectable::Red => Animate {
                 frames: 6,
                 loop_animation: true,
             },
             &Collectable::Yellow => Animate {
-                frames: 6,
-                loop_animation: true,
-            },
-            &Collectable::Green => Animate {
-                frames: 6,
-                loop_animation: true,
-            },
-            &Collectable::Grey => Animate {
                 frames: 6,
                 loop_animation: true,
             },

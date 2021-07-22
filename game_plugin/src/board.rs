@@ -1,5 +1,6 @@
 use crate::animate::{Animate, Move};
 use crate::audio::AudioEffect;
+use crate::hud::FinishedRecipe;
 use crate::loading::{AudioAssets, RawTextureAssets, TextureAssets};
 use crate::matcher::{Collectable, Pattern, Slot, SlotContent};
 use crate::{GameState, SystemLabels};
@@ -13,12 +14,15 @@ pub struct BoardPlugin;
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.insert_resource(Cauldron::new())
+            .insert_resource(Score { money: 0 })
             .insert_resource::<Selected>(None)
             .add_system_set(
-                SystemSet::on_enter(GameState::Playing)
-                    .with_system(set_camera.system())
-                    .with_system(prepare_board.system())
-                    .with_system(setup_shop.system()),
+                SystemSet::on_enter(GameState::Menu)
+                    .with_system(setup_shop.system())
+                    .with_system(set_camera.system()),
+            )
+            .add_system_set(
+                SystemSet::on_enter(GameState::Playing).with_system(prepare_board.system()),
             )
             .add_system_set(
                 SystemSet::on_update(GameState::Playing)
@@ -34,17 +38,27 @@ impl Plugin for BoardPlugin {
                             .label(SystemLabels::UserInput)
                             .after(SystemLabels::MatchPatterns),
                     )
-                    .with_system(check_possibilities.system()),
+                    .with_system(check_possibilities.system())
+                    .with_system(
+                        check_recipe_completion
+                            .system()
+                            .after(SystemLabels::Animate),
+                    ),
             );
     }
 }
 
 pub type Selected = Option<Slot>;
 
+pub struct Score {
+    pub money: usize,
+}
+
 #[derive(Debug)]
 pub struct Cauldron {
     pub recipe: Recipe,
     pub content: HashMap<Collectable, usize>,
+    pub finished_recipes: usize,
 }
 
 impl Cauldron {
@@ -52,17 +66,20 @@ impl Cauldron {
         Cauldron {
             recipe: Recipe::build_random(),
             content: HashMap::new(),
+            finished_recipes: 0,
         }
     }
 
     pub fn new_recipe(&mut self) {
         self.recipe = Recipe::build_random();
+        self.content = HashMap::new();
     }
 }
 
 #[derive(Debug)]
 pub struct Recipe {
     pub ingredients: Vec<Ingredients>,
+    pub reward: usize,
 }
 
 impl Recipe {
@@ -82,11 +99,14 @@ impl Recipe {
         let ingredients = collectables
             .drain(..)
             .map(|collectable| Ingredients {
-                amount: rng.gen_range(4..16),
+                amount: rng.gen_range(4..8),
                 collectable,
             })
             .collect();
-        Recipe { ingredients }
+        Recipe {
+            ingredients,
+            reward: 77,
+        }
     }
 }
 
@@ -173,6 +193,10 @@ fn take_patterns(mut board: ResMut<Board>, mut commands: Commands, textures: Res
     pattern_slots.sort();
     pattern_slots.dedup();
 
+    if pattern_slots.is_empty() {
+        return;
+    }
+
     let entities: Vec<SlotContent> = pattern_slots
         .iter()
         .map(|slot| board.get_content(slot))
@@ -195,10 +219,7 @@ fn take_patterns(mut board: ResMut<Board>, mut commands: Commands, textures: Res
         let content = board.get_content(&slot);
         commands
             .entity(content.entity)
-            .insert(vec![Move::move_to(Vec2::new(
-                slot.column as f32 * 64. + 32. + 12.,
-                slot.row as f32 * 64. + 32. + 12.,
-            ))])
+            .insert(vec![Move::move_to_slot(&slot)])
             .insert(slot);
     }
 }
@@ -267,29 +288,56 @@ fn user_selection(
     }
 }
 
-fn check_possibilities(board: Res<Board>) {
-    let mut board = board.clone();
-    for column in 0..(board.width - 1) {
-        for row in 0..(board.height - 1) {
-            let current = Slot { column, row };
-            let next_column = Slot {
-                column: column + 1,
-                row,
-            };
-            let next_row = Slot {
-                column,
-                row: row + 1,
-            };
-            if board.has_pattern_after_switch(&current, &next_column)
-                || board.has_pattern_after_switch(&current, &next_row)
-            {
+fn check_recipe_completion(
+    mut cauldron: ResMut<Cauldron>,
+    mut finished_recipe: EventWriter<FinishedRecipe>,
+    mut score: ResMut<Score>,
+) {
+    if cauldron.is_changed() {
+        for ingredient in cauldron.recipe.ingredients.iter() {
+            if let Some(current) = cauldron.content.get(&ingredient.collectable) {
+                if current < &ingredient.amount {
+                    return;
+                }
+            } else {
                 return;
             }
         }
-    }
 
-    // Todo
-    println!("out of moves!")
+        println!("recipe complete!");
+        score.money += cauldron.recipe.reward;
+        cauldron.finished_recipes += 1;
+        cauldron.new_recipe();
+
+        finished_recipe.send(FinishedRecipe);
+    }
+}
+
+fn check_possibilities(board: Res<Board>) {
+    if board.is_changed() {
+        let mut board = board.clone();
+        for column in 0..(board.width - 1) {
+            for row in 0..(board.height - 1) {
+                let current = Slot { column, row };
+                let next_column = Slot {
+                    column: column + 1,
+                    row,
+                };
+                let next_row = Slot {
+                    column,
+                    row: row + 1,
+                };
+                if board.has_pattern_after_switch(&current, &next_column)
+                    || board.has_pattern_after_switch(&current, &next_row)
+                {
+                    return;
+                }
+            }
+        }
+
+        // Todo
+        println!("out of moves!")
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -594,7 +642,7 @@ fn drop_random_collectable(
             transform: Transform::from_translation(Vec3::new(goal.x, goal.y + drop_height, 5.)),
             ..SpriteSheetBundle::default()
         })
-        .insert(vec![Move::move_to(goal)])
+        .insert(vec![Move::move_to_slot(&slot)])
         .insert(slot)
         .insert(collectable.clone())
         .id();
@@ -620,7 +668,7 @@ mod tests {
                 vec![
                     SlotContent {
                         entity: Entity::new(0),
-                        collectable: Collectable::Green
+                        collectable: Collectable::Jar
                     };
                     3
                 ];
@@ -659,7 +707,7 @@ mod tests {
                 vec![
                     SlotContent {
                         entity: Entity::new(0),
-                        collectable: Collectable::Green
+                        collectable: Collectable::Jar
                     };
                     size
                 ];
@@ -711,7 +759,7 @@ mod tests {
                 vec![
                     SlotContent {
                         entity: Entity::new(0),
-                        collectable: Collectable::Green
+                        collectable: Collectable::Jar
                     };
                     5
                 ];

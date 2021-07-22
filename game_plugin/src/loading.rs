@@ -32,6 +32,8 @@ pub struct FontAssets {
 pub struct AudioAssets {
     #[asset(path = "audio/no.ogg")]
     pub no: Handle<AudioSource>,
+    #[asset(path = "audio/background.ogg")]
+    pub background: Handle<AudioSource>,
 }
 
 #[derive(AssetCollection, Clone)]
@@ -44,20 +46,20 @@ pub struct RawTextureAssets {
     pub frog_sheet: Handle<Texture>,
     #[asset(path = "textures/heart_sheet.png")]
     pub heart_sheet: Handle<Texture>,
+    #[asset(path = "textures/spider_sheet.png")]
+    pub spider: Handle<Texture>,
+    #[asset(path = "textures/jar_sheet.png")]
+    pub jar: Handle<Texture>,
     #[asset(path = "textures/shelf.jpg")]
     pub shelf: Handle<Texture>,
     #[asset(path = "textures/cauldron.png")]
     pub cauldron_sheet: Handle<Texture>,
-    #[asset(path = "textures/green.png")]
-    pub green: Handle<Texture>,
     #[asset(path = "textures/red.png")]
     pub red: Handle<Texture>,
     #[asset(path = "textures/yellow.png")]
     pub yellow: Handle<Texture>,
     #[asset(path = "textures/blue.png")]
     pub blue: Handle<Texture>,
-    #[asset(path = "textures/grey.png")]
-    pub grey: Handle<Texture>,
 }
 
 pub struct TextureAssets {
@@ -65,11 +67,11 @@ pub struct TextureAssets {
     pub tongue: Handle<TextureAtlas>,
     pub frog: Handle<TextureAtlas>,
     pub heart: Handle<TextureAtlas>,
-    pub green: Handle<TextureAtlas>,
+    pub spider: Handle<TextureAtlas>,
+    pub jar: Handle<TextureAtlas>,
     pub red: Handle<TextureAtlas>,
     pub yellow: Handle<TextureAtlas>,
     pub blue: Handle<TextureAtlas>,
-    pub grey: Handle<TextureAtlas>,
     pub cauldron: Handle<TextureAtlas>,
 }
 
@@ -102,10 +104,16 @@ impl FromWorld for TextureAssets {
                 6,
                 1,
             )),
-            green: texture_atlases.add(TextureAtlas::from_grid(
-                raw_textures.green.clone(),
+            spider: texture_atlases.add(TextureAtlas::from_grid(
+                raw_textures.spider.clone(),
                 Vec2::new(64., 64.),
                 6,
+                1,
+            )),
+            jar: texture_atlases.add(TextureAtlas::from_grid(
+                raw_textures.jar.clone(),
+                Vec2::new(64., 64.),
+                4,
                 1,
             )),
             red: texture_atlases.add(TextureAtlas::from_grid(
@@ -116,12 +124,6 @@ impl FromWorld for TextureAssets {
             )),
             yellow: texture_atlases.add(TextureAtlas::from_grid(
                 raw_textures.yellow.clone(),
-                Vec2::new(64., 64.),
-                6,
-                1,
-            )),
-            grey: texture_atlases.add(TextureAtlas::from_grid(
-                raw_textures.grey.clone(),
                 Vec2::new(64., 64.),
                 6,
                 1,

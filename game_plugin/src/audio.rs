@@ -1,7 +1,7 @@
-use crate::loading::AudioAssets;
 use crate::GameState;
 use bevy::prelude::*;
 use bevy_kira_audio::{Audio, AudioChannel, AudioPlugin, AudioSource};
+use crate::loading::AudioAssets;
 
 pub struct InternalAudioPlugin;
 
@@ -28,9 +28,10 @@ pub struct AudioEffect {
     pub handle: Handle<AudioSource>,
 }
 
-fn start_audio(audio: Res<Audio>, channels: Res<AudioChannels>) {
+fn start_audio(audio: Res<Audio>, channels: Res<AudioChannels>, audio_assets: Res<AudioAssets>) {
     audio.set_volume_in_channel(0.4, &channels.effects);
     audio.set_volume_in_channel(0.4, &channels.background);
+    audio.play_looped_in_channel(audio_assets.background.clone(), &channels.background)
 }
 
 fn play_effect(

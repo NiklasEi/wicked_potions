@@ -28,6 +28,7 @@ enum GameState {
 #[derive(SystemLabel, Clone, Hash, Debug, Eq, PartialEq)]
 pub enum SystemLabels {
     Animate,
+    DisplayUiForNewRecipe,
     MatchPatterns,
     UserInput,
 }
