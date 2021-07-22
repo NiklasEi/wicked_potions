@@ -51,7 +51,7 @@ fn setup_ui(
                 }],
                 alignment: Default::default(),
             },
-            transform: Transform::from_translation(Vec3::new(800. - 76., 480., 10.)),
+            transform: Transform::from_translation(Vec3::new(800. - 76., 350., 10.)),
             ..Text2dBundle::default()
         })
         .insert(Ui)
@@ -69,7 +69,7 @@ fn setup_ui(
                 }],
                 alignment: Default::default(),
             },
-            transform: Transform::from_translation(Vec3::new(800. - 76., 410., 10.)),
+            transform: Transform::from_translation(Vec3::new(800. - 76., 310., 10.)),
             ..Text2dBundle::default()
         })
         .insert(Ui)
@@ -109,6 +109,23 @@ fn display_ingredients(
 ) {
     let mut index = 0;
     for ingredient in cauldron.recipe.ingredients.iter() {
+        let mut text_transform = Transform::from_translation(Vec3::new(
+            800. - (index + 1) as f32 * 76. - 18.,
+            430.,
+            10.,
+        ));
+        let mut icon_transform = Transform::from_translation(Vec3::new(
+            800. - (index + 1) as f32 * 76. + 5.,
+            430. + 7.,
+            10.,
+        ));
+        icon_transform.scale = Vec3::new(0.5, 0.5, 0.5);
+        if index == 2 {
+            text_transform.translation.y -= 30.;
+            text_transform.translation.x += 76.;
+            icon_transform.translation.y -= 30.;
+            icon_transform.translation.x += 76.;
+        }
         commands
             .spawn_bundle(Text2dBundle {
                 text: Text {
@@ -122,21 +139,11 @@ fn display_ingredients(
                     }],
                     alignment: Default::default(),
                 },
-                transform: Transform::from_translation(Vec3::new(
-                    800. - (index + 1) as f32 * 76. + 18.,
-                    550.,
-                    10.,
-                )),
+                transform: text_transform,
                 ..Text2dBundle::default()
             })
             .insert(Ui)
             .insert(ingredient.collectable.clone());
-        let mut icon_transform = Transform::from_translation(Vec3::new(
-            800. - (index + 1) as f32 * 76. + 38.,
-            550. + 7.,
-            10.,
-        ));
-        icon_transform.scale = Vec3::new(0.5, 0.5, 0.5);
         commands
             .spawn_bundle(SpriteSheetBundle {
                 texture_atlas: ingredient.collectable.get_texture(&textures),
